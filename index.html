@@ -27,13 +27,16 @@
         border: 4px solid rgba(255,255,255,0.35);
         border-top-color: #fff;
         border-radius: 50%;
-        animation: spinner-rotate 1s linear infinite;
+        animation: pre-root-spinner 1s linear infinite;
         z-index: 10000;
         left: 50%;
         top: 50%;
         transform: translate(-50%, -50%);
       }
-      @keyframes spinner-rotate { to { transform: translate(-50%, -50%) rotate(360deg); } }
+      @keyframes pre-root-spinner {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+      }
     </style>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
