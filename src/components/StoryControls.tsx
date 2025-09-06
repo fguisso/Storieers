@@ -17,6 +17,7 @@ export function StoryControls({ onPrev, onNext, muted, toggleMuted, originalUrl 
 
 	const longPressTimerRef = useRef<number | null>(null);
 	const suppressTapRef = useRef(false);
+	const touchActiveRef = useRef(false);
 	const [longPressActive, setLongPressActive] = useState(false);
 
 	const clearLongPressTimer = () => {
@@ -40,9 +41,17 @@ export function StoryControls({ onPrev, onNext, muted, toggleMuted, originalUrl 
 		}
 	};
 
-	const LONG_PRESS_MS = 800;
+	const LONG_PRESS_MS = 600;
 
-	const handlePressStart = () => {
+	const handlePressStart = (e: React.MouseEvent | React.TouchEvent) => {
+		// Detect touch start and ignore subsequent emulated mouse events
+		if ('touches' in e) {
+			if (e.touches.length > 1) return; // ignore multi-touch
+			touchActiveRef.current = true;
+		} else if (touchActiveRef.current) {
+			// Ignore mouse down immediately after touchstart
+			return;
+		}
 		clearLongPressTimer();
 		longPressTimerRef.current = window.setTimeout(() => {
 			setLongPressActive(true);
@@ -57,8 +66,20 @@ export function StoryControls({ onPrev, onNext, muted, toggleMuted, originalUrl 
 			resumeVideo();
 			setLongPressActive(false);
 			suppressTapRef.current = true;
-			window.setTimeout(() => { suppressTapRef.current = false; }, 0);
+			window.setTimeout(() => { suppressTapRef.current = false; }, 50);
 		}
+	};
+
+	const handlePressCancel = () => {
+		clearLongPressTimer();
+		if (longPressActive) {
+			resumeVideo();
+			setLongPressActive(false);
+			suppressTapRef.current = true;
+			window.setTimeout(() => { suppressTapRef.current = false; }, 50);
+		}
+		// Allow mouse events again shortly after touch ends/cancels
+		window.setTimeout(() => { touchActiveRef.current = false; }, 80);
 	};
 
 	return (
@@ -67,9 +88,10 @@ export function StoryControls({ onPrev, onNext, muted, toggleMuted, originalUrl 
 			{...handlers}
 			onMouseDown={handlePressStart}
 			onMouseUp={handlePressEnd}
-			onMouseLeave={handlePressEnd}
+			onMouseLeave={handlePressCancel}
 			onTouchStart={handlePressStart}
 			onTouchEnd={handlePressEnd}
+			onTouchCancel={handlePressCancel}
 		>
 			<div className="tap-zone tap-left" onClick={() => { if (suppressTapRef.current || longPressActive) { suppressTapRef.current = false; return; } onPrev(); }} />
 			<div className="tap-zone tap-right" onClick={() => { if (suppressTapRef.current || longPressActive) { suppressTapRef.current = false; return; } onNext(); }} />

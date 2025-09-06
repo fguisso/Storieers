@@ -4,7 +4,7 @@ import { useHls } from '../hooks/useHls';
 
 export function StoryPlayer({ video, muted, onEnded, onError }: { video: VideoItem; muted: boolean; onEnded: () => void; onError: (e: unknown) => void; }) {
 	const ref = useRef<HTMLVideoElement | null>(null);
-	const [isBuffering, setIsBuffering] = useState(true);
+	const [showInitialSpinner, setShowInitialSpinner] = useState(true);
 
 	useHls({
 		videoEl: ref.current,
@@ -26,30 +26,25 @@ export function StoryPlayer({ video, muted, onEnded, onError }: { video: VideoIt
 	useEffect(() => {
 		const videoEl = ref.current;
 		if (!videoEl) return;
-		setIsBuffering(true);
+		setShowInitialSpinner(true);
 
-		const handleWaiting = () => setIsBuffering(true);
-		const handleCanPlay = () => setIsBuffering(false);
-		const handlePlaying = () => setIsBuffering(false);
-		const handleLoadedData = () => setIsBuffering(false);
+		const hideInitial = () => setShowInitialSpinner(false);
 
-		videoEl.addEventListener('waiting', handleWaiting);
-		videoEl.addEventListener('canplay', handleCanPlay);
-		videoEl.addEventListener('playing', handlePlaying);
-		videoEl.addEventListener('loadeddata', handleLoadedData);
+		videoEl.addEventListener('loadeddata', hideInitial);
+		videoEl.addEventListener('canplay', hideInitial);
+		videoEl.addEventListener('playing', hideInitial);
 
 		return () => {
-			videoEl.removeEventListener('waiting', handleWaiting);
-			videoEl.removeEventListener('canplay', handleCanPlay);
-			videoEl.removeEventListener('playing', handlePlaying);
-			videoEl.removeEventListener('loadeddata', handleLoadedData);
+			videoEl.removeEventListener('loadeddata', hideInitial);
+			videoEl.removeEventListener('canplay', hideInitial);
+			videoEl.removeEventListener('playing', hideInitial);
 		};
 	}, [video.id]);
 
 	return (
 		<div className="story-container">
 			<video ref={ref} className="video-el" playsInline muted={muted} autoPlay />
-			{isBuffering && (
+			{showInitialSpinner && (
 				<div className="absolute inset-0 z-40 grid place-content-center pointer-events-none">
 					<div className="loading-spinner" />
 				</div>

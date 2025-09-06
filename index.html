@@ -7,6 +7,34 @@
     <title>Vite + React + TS</title>
   </head>
   <body>
+    <style>
+      /* Pre-mount loader: black background to avoid white flash */
+      html, body { background-color: #000; }
+      #root:empty::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        background: #000;
+        z-index: 9999;
+      }
+      #root:empty::after {
+        content: '';
+        position: fixed;
+        width: 48px;
+        height: 48px;
+        border: 4px solid rgba(255,255,255,0.35);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spinner-rotate 1s linear infinite;
+        z-index: 10000;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+      @keyframes spinner-rotate { to { transform: translate(-50%, -50%) rotate(360deg); } }
+    </style>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
