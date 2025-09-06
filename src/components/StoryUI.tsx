@@ -2,6 +2,7 @@ import { useStories } from '../context/StoriesProvider';
 import ProgressBar from './ProgressBar';
 import StoryPlayer from './StoryPlayer';
 import StoryControls from './StoryControls';
+import RightSideButtons from './RightSideButtons';
 
 export default function StoryUI() {
 	const { stories, currentIndex, next, prev, muted, toggleMuted, loading, error } = useStories();
@@ -37,6 +38,7 @@ export default function StoryUI() {
 				<div className="text-sm opacity-90">@{current.author}@{current.instance}</div>
 			</div>
 
+			<RightSideButtons muted={muted} toggleMuted={toggleMuted} />
 			<StoryControls onPrev={prev} onNext={next} muted={muted} toggleMuted={toggleMuted} originalUrl={current.originalPageUrl} />
 		</div>
 	);
