@@ -17,9 +17,9 @@ export function StoriesProvider({ children }: { children: React.ReactNode }) {
 			setLoading(true);
 			setError(undefined);
 			try {
-				const { channelId } = await resolveStartVideo();
-				if (!channelId) throw new Error('Channel not found from start video');
-				const vids = await fetchChannelVideos(channelId);
+				const { channelId, accountName } = await resolveStartVideo();
+				const vids = await fetchChannelVideos(channelId, accountName);
+				if (!vids.length) throw new Error('No videos found for channel/account');
 				if (mounted) {
 					setStories(vids);
 					setCurrentIndex(0);

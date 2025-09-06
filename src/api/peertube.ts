@@ -36,6 +36,10 @@ const ChannelVideosListSchema = z.object({
 	})).default([]),
 });
 
+type ChannelListItem = z.infer<typeof ChannelVideosListSchema>['data'][number];
+
+const AccountVideosListSchema = ChannelVideosListSchema;
+
 const VideoDetailsSchema = z.object({
 	id: z.number(),
 	uuid: z.string(),
@@ -54,6 +58,8 @@ const VideoDetailsSchema = z.object({
 	})).optional(),
 });
 
+const ChannelDetailsSchema = z.object({ id: z.number(), uuid: z.string() });
+
 const AccountChannelsSchema = z.object({
 	data: z.array(z.object({ id: z.number(), name: z.string().optional() })).default([]),
 });
@@ -61,6 +67,12 @@ const AccountChannelsSchema = z.object({
 async function httpJson<T>(url: string): Promise<T> {
 	const res = await fetch(url);
 	if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+	return res.json() as Promise<T>;
+}
+
+async function httpJsonMaybe<T>(url: string): Promise<T | undefined> {
+	const res = await fetch(url);
+	if (!res.ok) return undefined;
 	return res.json() as Promise<T>;
 }
 
@@ -83,7 +95,7 @@ async function getFirstChannelIdByAccountName(accountName: string | undefined): 
 	return undefined;
 }
 
-export async function resolveStartVideo(): Promise<{ videoId: number; uuid: string; channelId?: number }>
+export async function resolveStartVideo(): Promise<{ videoId: number; uuid: string; channelId?: number; accountName?: string }>
 {
 	let foundId: number | undefined;
 	let foundUuid: string | undefined;
@@ -130,7 +142,7 @@ export async function resolveStartVideo(): Promise<{ videoId: number; uuid: stri
 		throw new Error('Could not resolve start video');
 	}
 
-	return { videoId: foundId, uuid: foundUuid, channelId: foundChannelId };
+	return { videoId: foundId, uuid: foundUuid, channelId: foundChannelId, accountName: foundAccountName };
 }
 
 function buildThumbnailUrl(thumbnailPath?: string): string {
@@ -156,13 +168,37 @@ function extractMp4Url(video: z.infer<typeof VideoDetailsSchema>): string | unde
 	return mp4?.fileUrl;
 }
 
-export async function fetchChannelVideos(channelId: number): Promise<VideoItem[]> {
-	const listUrl = api(`/api/v1/video-channels/${channelId}/videos?sort=-publishedAt&count=${PAGE_COUNT}`);
-	const listUnknown = await httpJson<unknown>(listUrl);
-	const listParsed = ChannelVideosListSchema.parse(listUnknown);
-	const items = listParsed.data;
+export async function fetchChannelVideos(channelId: number | undefined, accountName?: string): Promise<VideoItem[]> {
+	let items: ChannelListItem[] | undefined;
 
-	const details = await Promise.all(items.map(async (it) => {
+	// Try by channel numeric id
+	if (typeof channelId === 'number') {
+		const listUnknown = await httpJsonMaybe<unknown>(api(`/api/v1/video-channels/${channelId}/videos?sort=-publishedAt&count=${PAGE_COUNT}`));
+		if (listUnknown) {
+			items = ChannelVideosListSchema.parse(listUnknown).data;
+		}
+
+		// If not found, try resolving channel uuid then list by uuid
+		if (!items || items.length === 0) {
+			const channelDetails = await httpJsonMaybe<unknown>(api(`/api/v1/video-channels/${channelId}`));
+			const parsedDetails = channelDetails ? ChannelDetailsSchema.safeParse(channelDetails) : undefined;
+			if (parsedDetails?.success) {
+				const uuid = parsedDetails.data.uuid;
+				const byUuid = await httpJsonMaybe<unknown>(api(`/api/v1/video-channels/${uuid}/videos?sort=-publishedAt&count=${PAGE_COUNT}`));
+				if (byUuid) items = ChannelVideosListSchema.parse(byUuid).data;
+			}
+		}
+	}
+
+	// Fallback to account videos
+	if ((!items || items.length === 0) && accountName) {
+		const acc = await httpJsonMaybe<unknown>(api(`/api/v1/accounts/${encodeURIComponent(accountName)}/videos?sort=-publishedAt&count=${PAGE_COUNT}`));
+		if (acc) {
+			items = AccountVideosListSchema.parse(acc).data;
+		}
+	}
+
+	const details = await Promise.all((items || []).map(async (it) => {
 		try {
 			const d = await httpJson<unknown>(api(`/api/v1/videos/${it.id}`));
 			return VideoDetailsSchema.parse(d);
@@ -173,11 +209,11 @@ export async function fetchChannelVideos(channelId: number): Promise<VideoItem[]
 
 	const host = baseUrl.replace(/^https?:\/\//, '');
 	const videos: VideoItem[] = [];
-	for (let i = 0; i < items.length; i++) {
-		const raw = items[i];
+	for (let i = 0; i < (items || []).length; i++) {
+		const raw = (items as ChannelListItem[])[i];
 		const d = details[i];
 		const id = Number(raw?.id ?? d?.id);
-		const uuid = String((raw as { uuid?: string }).uuid ?? d?.uuid ?? '');
+		const uuid = String(raw?.uuid ?? d?.uuid ?? '');
 		if (!id || !uuid) continue;
 		const title = String(raw?.name ?? raw?.title ?? d?.title ?? d?.name ?? '');
 		const duration = Number(raw?.duration ?? d?.duration ?? 0);
