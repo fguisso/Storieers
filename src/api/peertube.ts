@@ -54,34 +54,83 @@ const VideoDetailsSchema = z.object({
 	})).optional(),
 });
 
+const AccountChannelsSchema = z.object({
+	data: z.array(z.object({ id: z.number(), name: z.string().optional() })).default([]),
+});
+
 async function httpJson<T>(url: string): Promise<T> {
 	const res = await fetch(url);
 	if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
 	return res.json() as Promise<T>;
 }
 
+async function getVideoDetails(idOrUuid: number | string) {
+	const details = await httpJson<unknown>(api(`/api/v1/videos/${idOrUuid}`));
+	return VideoDetailsSchema.parse(details);
+}
+
+async function getFirstChannelIdByAccountName(accountName: string | undefined): Promise<number | undefined> {
+	if (!accountName) return undefined;
+	try {
+		const list = await httpJson<unknown>(api(`/api/v1/accounts/${encodeURIComponent(accountName)}/video-channels?count=1`));
+		const parsed = AccountChannelsSchema.safeParse(list);
+		if (parsed.success && parsed.data.data.length > 0) {
+			return parsed.data.data[0].id;
+		}
+	} catch {
+		// ignore and return undefined
+	}
+	return undefined;
+}
+
 export async function resolveStartVideo(): Promise<{ videoId: number; uuid: string; channelId?: number }>
 {
+	let foundId: number | undefined;
+	let foundUuid: string | undefined;
+	let foundChannelId: number | undefined;
+	let foundAccountName: string | undefined;
+
 	const searchUrl = api(`/api/v1/search/videos?search=${encodeURIComponent(START_VIDEO)}`);
 	try {
 		const search = await httpJson<unknown>(searchUrl);
 		const parsed = SearchVideosSchema.safeParse(search);
 		if (parsed.success && parsed.data.data.length > 0) {
 			const v = parsed.data.data[0];
-			const channelId = (v.channel || v.videoChannel)?.id;
-			return { videoId: v.id, uuid: v.uuid, channelId };
+			foundId = v.id;
+			foundUuid = v.uuid;
+			foundChannelId = (v.channel || v.videoChannel)?.id;
+			foundAccountName = v.account?.name;
 		}
 	} catch {
-		// ignore search failure; fallback to direct video lookup below
+		// ignore search failure; fallback below
 	}
 
-	// fallback: GET /api/v1/videos/{shortId}
-	const shortId = START_VIDEO.split('/w/')[1]?.split(/[?#]/)[0];
-	if (!shortId) throw new Error('Invalid VITE_START_VIDEO');
-	const detailsUrl = api(`/api/v1/videos/${shortId}`);
-	const details = await httpJson<unknown>(detailsUrl);
-	const parsedDetails = VideoDetailsSchema.parse(details);
-	return { videoId: parsedDetails.id, uuid: parsedDetails.uuid, channelId: parsedDetails.videoChannel?.id };
+	// If channel still unknown, fetch video details by id or short uuid
+	if (!foundChannelId) {
+		const idOrShort = foundId ?? START_VIDEO.split('/w/')[1]?.split(/[?#]/)[0];
+		if (idOrShort) {
+			try {
+				const d = await getVideoDetails(idOrShort);
+				foundId = d.id;
+				foundUuid = d.uuid;
+				foundChannelId = d.videoChannel?.id ?? foundChannelId;
+				foundAccountName = d.account?.name ?? foundAccountName;
+			} catch {
+				// details fetch failure; try account-based fallback below
+			}
+		}
+	}
+
+	// Final fallback: use account's first channel
+	if (!foundChannelId) {
+		foundChannelId = await getFirstChannelIdByAccountName(foundAccountName);
+	}
+
+	if (!foundId || !foundUuid) {
+		throw new Error('Could not resolve start video');
+	}
+
+	return { videoId: foundId, uuid: foundUuid, channelId: foundChannelId };
 }
 
 function buildThumbnailUrl(thumbnailPath?: string): string {
@@ -97,7 +146,6 @@ function buildOriginalUrl(uuid: string): string {
 function extractHlsUrl(video: z.infer<typeof VideoDetailsSchema>): string | undefined {
 	const playlists = video.streamingPlaylists;
 	if (!playlists || playlists.length === 0) return undefined;
-	// Prefer master playlist
 	const master = playlists.find(p => p.playlistUrl);
 	return master?.playlistUrl;
 }
