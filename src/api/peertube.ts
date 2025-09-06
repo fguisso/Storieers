@@ -13,7 +13,8 @@ const SearchVideosSchema = z.object({
 	data: z.array(z.object({
 		id: z.number(),
 		uuid: z.string(),
-		title: z.string(),
+		title: z.string().optional(),
+		name: z.string().optional(),
 		duration: z.number().optional(),
 		thumbnailPath: z.string().optional(),
 		url: z.string().optional(),
@@ -38,7 +39,8 @@ const ChannelVideosListSchema = z.object({
 const VideoDetailsSchema = z.object({
 	id: z.number(),
 	uuid: z.string(),
-	title: z.string(),
+	title: z.string().optional(),
+	name: z.string().optional(),
 	description: z.string().optional(),
 	duration: z.number().optional(),
 	thumbnailPath: z.string().optional(),
@@ -129,7 +131,7 @@ export async function fetchChannelVideos(channelId: number): Promise<VideoItem[]
 		const id = Number(raw?.id ?? d?.id);
 		const uuid = String((raw as { uuid?: string }).uuid ?? d?.uuid ?? '');
 		if (!id || !uuid) continue;
-		const title = String(raw?.name ?? raw?.title ?? d?.title ?? '');
+		const title = String(raw?.name ?? raw?.title ?? d?.title ?? d?.name ?? '');
 		const duration = Number(raw?.duration ?? d?.duration ?? 0);
 		if (MAX_DURATION && duration > MAX_DURATION) continue;
 		const thumbnailUrl = buildThumbnailUrl(raw?.thumbnailPath ?? d?.thumbnailPath);
