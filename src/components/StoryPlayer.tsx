@@ -4,7 +4,6 @@ import { useHls } from '../hooks/useHls';
 
 export function StoryPlayer({ video, muted, onEnded, onError }: { video: VideoItem; muted: boolean; onEnded: () => void; onError: (e: unknown) => void; }) {
 	const ref = useRef<HTMLVideoElement | null>(null);
-	const [userGestureNeeded, setUserGestureNeeded] = useState(false);
 	const [showInitialSpinner, setShowInitialSpinner] = useState(true);
 
 	useHls({
@@ -15,14 +14,22 @@ export function StoryPlayer({ video, muted, onEnded, onError }: { video: VideoIt
 		onEnded,
 		onError: (e) => {
 			onError(e);
-			setUserGestureNeeded(true);
 		},
 	});
 
 	useEffect(() => {
 		if (!ref.current) return;
-		// Try autoplay on video change
-		ref.current.play().catch(() => setUserGestureNeeded(true));
+		// Try autoplay on video change - force play without user gesture
+		ref.current.muted = true; // Ensure muted for autoplay
+		ref.current.play().catch((error) => {
+			console.log('Autoplay failed, trying again:', error);
+			// If autoplay fails, try again after a short delay
+			setTimeout(() => {
+				ref.current?.play().catch(() => {
+					console.log('Autoplay failed completely');
+				});
+			}, 100);
+		});
 	}, [video.id]);
 
 	useEffect(() => {
@@ -49,11 +56,6 @@ export function StoryPlayer({ video, muted, onEnded, onError }: { video: VideoIt
 			{showInitialSpinner && (
 				<div className="absolute inset-0 z-40 grid place-content-center pointer-events-none">
 					<div className="loading-spinner" />
-				</div>
-			)}
-			{userGestureNeeded && (
-				<div className="absolute inset-0 z-40 flex items-center justify-center text-white" onClick={() => { setUserGestureNeeded(false); ref.current?.play().catch(() => undefined); }}>
-					<div className="bg-black/60 px-4 py-2 rounded">Toque para iniciar</div>
 				</div>
 			)}
 		</div>

@@ -27,7 +27,7 @@ export default function StoryUI({ onStoriesEnd }: StoryUIProps) {
 		}
 	};
 
-	if (loading) return <div className="h-screen w-screen grid place-content-center text-white">Carregando…</div>;
+	if (loading) return <div className="h-screen w-screen bg-black grid place-content-center text-white text-xl">Carregando…</div>;
 	if (error) return <div className="h-screen w-screen grid place-content-center text-white">Erro: {error}</div>;
 	if (!current) return <div className="h-screen w-screen grid place-content-center text-white">Nenhum vídeo</div>;
 

@@ -1,21 +1,37 @@
 
+import { getGravatarUrl } from '../utils/gravatar';
+
 interface HomePageProps {
   onAvatarClick: () => void;
 }
 
 export default function HomePage({ onAvatarClick }: HomePageProps) {
+  // Pega o email do usuário da variável de ambiente
+  const userEmail = import.meta.env.VITE_USER_EMAIL || 'default@example.com';
+  const gravatarUrl = getGravatarUrl(userEmail, 128);
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex flex-col items-center justify-center p-8">
       {/* Avatar Circular com Border Gradiente */}
-      <div className="mb-8">
+      <div className="mb-8 flex flex-col items-center">
         <div 
           className="w-32 h-32 rounded-full p-1 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-2xl hover:shadow-pink-500/50"
           onClick={onAvatarClick}
         >
           <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center overflow-hidden">
-            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
-              <span className="text-4xl font-bold text-white animate-pulse">📱</span>
-            </div>
+            <img 
+              src={gravatarUrl} 
+              alt="Avatar do usuário" 
+              className="w-28 h-28 rounded-full object-cover"
+              onError={(e) => {
+                // Fallback para emoji se a imagem do Gravatar falhar
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  parent.innerHTML = '<div class="w-28 h-28 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center"><span class="text-4xl font-bold text-white animate-pulse">📱</span></div>';
+                }
+              }}
+            />
           </div>
         </div>
         <div className="mt-4 text-center">
