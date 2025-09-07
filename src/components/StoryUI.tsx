@@ -3,7 +3,6 @@ import ProgressBar from './ProgressBar';
 import StoryPlayer from './StoryPlayer';
 import StoryControls from './StoryControls';
 import RightSideButtons from './RightSideButtons';
-import AutoplayUnlocker from './AutoplayUnlocker';
 
 export default function StoryUI() {
 	const { stories, currentIndex, next, prev, muted, toggleMuted, loading, error } = useStories();
@@ -41,7 +40,6 @@ export default function StoryUI() {
 
 			<RightSideButtons muted={muted} toggleMuted={toggleMuted} />
 			<StoryControls onPrev={prev} onNext={next} muted={muted} toggleMuted={toggleMuted} originalUrl={current.originalPageUrl} />
-			<AutoplayUnlocker />
 		</div>
 	);
 }

@@ -19,17 +19,8 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 		const setup = async () => {
 			try {
 				videoEl.muted = muted;
-				if (muted) {
-					videoEl.setAttribute('muted', '');
-				} else {
-					videoEl.removeAttribute('muted');
-				}
 				videoEl.setAttribute('playsinline', 'true');
-				videoEl.setAttribute('webkit-playsinline', 'true');
-				videoEl.setAttribute('autoplay', '');
-				videoEl.setAttribute('preload', 'auto');
 				videoEl.autoplay = true;
-				videoEl.preload = 'auto';
 				videoEl.controls = false;
 
 				videoEl.onended = onEnded;
@@ -55,29 +46,20 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 					});
 					hls.loadSource(hlsUrl);
 					hls.attachMedia(videoEl);
-					const tryPlay = () => { videoEl.play().catch(() => undefined); };
-					hls.on(Hls.Events.MANIFEST_PARSED, () => { tryPlay(); });
-					videoEl.addEventListener('canplay', tryPlay, { once: true } as EventListenerOptions);
-					setTimeout(() => { tryPlay(); }, 0);
+					await videoEl.play().catch(() => undefined);
 					return;
 				}
 
 				// Native HLS (Safari) or fallback to MP4
 				if (hlsUrl && videoEl.canPlayType('application/vnd.apple.mpegurl')) {
 					videoEl.src = hlsUrl;
-					videoEl.load();
-					const tryPlayNative = () => { videoEl.play().catch(() => undefined); };
-					videoEl.addEventListener('canplay', tryPlayNative, { once: true } as EventListenerOptions);
-					setTimeout(() => { tryPlayNative(); }, 0);
+					await videoEl.play().catch(() => undefined);
 					return;
 				}
 
 				if (mp4Url) {
 					videoEl.src = mp4Url;
-					videoEl.load();
-					const tryPlayMp4 = () => { videoEl.play().catch(() => undefined); };
-					videoEl.addEventListener('canplay', tryPlayMp4, { once: true } as EventListenerOptions);
-					setTimeout(() => { tryPlayMp4(); }, 0);
+					await videoEl.play().catch(() => undefined);
 					return;
 				}
 
@@ -92,16 +74,5 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 		return () => {
 			try { hls?.destroy(); } catch { /* ignore destroy errors */ }
 		};
-	}, [videoEl, hlsUrl, mp4Url, onEnded, onError]);
-
-	// Update muted state without reinitializing the media source
-	useEffect(() => {
-		if (!videoEl) return;
-		videoEl.muted = muted;
-		if (muted) {
-			videoEl.setAttribute('muted', '');
-		} else {
-			videoEl.removeAttribute('muted');
-		}
-	}, [videoEl, muted]);
+	}, [videoEl, hlsUrl, mp4Url, muted, onEnded, onError]);
 }
