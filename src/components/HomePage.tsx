@@ -79,55 +79,134 @@ export default function HomePage({ onAvatarClick }: HomePageProps) {
               <span className="transform group-open:rotate-180 transition-transform duration-200">▼</span>
             </summary>
             
-            <div className="mt-6 space-y-6 text-left">
+            <div className="mt-6 space-y-8 text-left">
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Por que PeerTube?</h3>
+                <h3 className="text-xl font-semibold text-white mb-4">🌐 O que são Redes Federadas?</h3>
+                <p className="text-gray-200 leading-relaxed mb-4">
+                  Imagine se cada cidade tivesse sua própria rede social, mas todas pudessem se comunicar entre si. 
+                  É assim que funcionam as redes federadas! Diferente do Instagram ou YouTube, onde tudo é controlado 
+                  por uma empresa, as redes federadas são como uma federação de servidores independentes que conversam entre si.
+                </p>
                 <p className="text-gray-200 leading-relaxed">
-                  Escolhi o PeerTube como base porque é uma plataforma descentralizada e de código aberto. 
-                  Isso me dá total controle sobre meu conteúdo, sem depender de grandes corporações. 
-                  O PeerTube também oferece streaming de vídeo de alta qualidade com suporte a HLS, 
-                  perfeito para uma experiência de stories fluida.
+                  Por exemplo: se você tem uma conta no Mastodon (rede social federada), você pode seguir e interagir 
+                  com pessoas de outros servidores Mastodon, mesmo que elas estejam em "cidades" diferentes. 
+                  É como ter um passaporte que funciona em vários países!
                 </p>
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Tecnologias Utilizadas</h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-blue-400">⚛️</span>
-                      <span className="text-gray-200">React 18 + TypeScript</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-green-400">⚡</span>
-                      <span className="text-gray-200">Vite (build tool)</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-purple-400">🎨</span>
-                      <span className="text-gray-200">Tailwind CSS</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-yellow-400">🔐</span>
-                      <span className="text-gray-200">Crypto-JS (Gravatar)</span>
-                    </div>
+                <h3 className="text-xl font-semibold text-white mb-4">🎬 Por que escolhemos o PeerTube?</h3>
+                <p className="text-gray-200 leading-relaxed mb-4">
+                  O PeerTube é como o YouTube, mas federado e descentralizado. Em vez de todos os vídeos ficarem 
+                  em servidores do Google, cada instância do PeerTube (servidor) hospeda seus próprios vídeos, 
+                  mas pode mostrar vídeos de outras instâncias também.
+                </p>
+                <p className="text-gray-200 leading-relaxed mb-4">
+                  <strong className="text-white">Vantagens do PeerTube:</strong>
+                </p>
+                <ul className="list-disc list-inside space-y-2 text-gray-200 ml-4">
+                  <li><strong className="text-white">Controle total:</strong> Seu conteúdo, suas regras</li>
+                  <li><strong className="text-white">Sem algoritmos:</strong> Seus vídeos aparecem para quem você escolher</li>
+                  <li><strong className="text-white">Código aberto:</strong> Qualquer um pode ver como funciona</li>
+                  <li><strong className="text-white">Streaming profissional:</strong> Suporte a HLS para vídeos de alta qualidade</li>
+                  <li><strong className="text-white">API robusta:</strong> Fácil integração com aplicações personalizadas</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold text-white mb-4">🎨 Por que uma interface familiar?</h3>
+                <p className="text-gray-200 leading-relaxed mb-4">
+                  Mesmo usando tecnologia descentralizada, mantive a interface similar ao Instagram Stories por uma razão simples: 
+                  <strong className="text-white">facilitar a migração</strong>. Pessoas acostumadas com grandes plataformas 
+                  se sentem mais confortáveis quando encontram algo familiar.
+                </p>
+                <p className="text-gray-200 leading-relaxed">
+                  A ideia é mostrar que tecnologia descentralizada não precisa ser complicada. Você pode ter o melhor 
+                  dos dois mundos: a simplicidade do Instagram com a liberdade das redes federadas.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold text-white mb-4">⚙️ Como estamos usando o PeerTube?</h3>
+                <p className="text-gray-200 leading-relaxed mb-4">
+                  Nossa aplicação funciona como uma "capa" sobre o PeerTube. Em vez de usar a interface padrão do PeerTube, 
+                  criamos uma experiência personalizada que:
+                </p>
+                <ul className="list-disc list-inside space-y-2 text-gray-200 ml-4">
+                  <li>Conecta diretamente com a API do PeerTube para buscar vídeos</li>
+                  <li>Transforma vídeos normais em formato "stories" (vertical, autoplay)</li>
+                  <li>Adiciona controles de navegação por gestos (swipe)</li>
+                  <li>Implementa barras de progresso visuais</li>
+                  <li>Mantém a qualidade de streaming original do PeerTube</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold text-white mb-4">🛠️ Justificativa das Tecnologias</h3>
+                
+                <div className="space-y-6">
+                  <div className="bg-gray-800/30 rounded-lg p-4">
+                    <h4 className="text-lg font-semibold text-white mb-2">⚛️ React 18 + TypeScript</h4>
+                    <p className="text-gray-200 text-sm">
+                      React é a base da interface, permitindo componentes reutilizáveis e atualizações eficientes. 
+                      TypeScript adiciona verificação de tipos, evitando erros comuns e facilitando manutenção. 
+                      Escolhi React porque é maduro, tem grande comunidade e funciona perfeitamente para interfaces interativas.
+                    </p>
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-red-400">📺</span>
-                      <span className="text-gray-200">HLS.js (streaming)</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-indigo-400">👆</span>
-                      <span className="text-gray-200">React Swipeable</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-orange-400">🌐</span>
-                      <span className="text-gray-200">PeerTube API</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-pink-400">📱</span>
-                      <span className="text-gray-200">PWA Ready</span>
-                    </div>
+
+                  <div className="bg-gray-800/30 rounded-lg p-4">
+                    <h4 className="text-lg font-semibold text-white mb-2">⚡ Vite (Build Tool)</h4>
+                    <p className="text-gray-200 text-sm">
+                      Vite é extremamente rápido para desenvolvimento e gera builds otimizados para produção. 
+                      Diferente de ferramentas mais antigas, Vite usa módulos nativos do navegador durante desenvolvimento, 
+                      resultando em recarregamento instantâneo quando você faz mudanças no código.
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-800/30 rounded-lg p-4">
+                    <h4 className="text-lg font-semibold text-white mb-2">🎨 Tailwind CSS</h4>
+                    <p className="text-gray-200 text-sm">
+                      Tailwind permite estilizar componentes diretamente no HTML usando classes utilitárias. 
+                      Isso acelera o desenvolvimento, mantém consistência visual e facilita responsividade. 
+                      É perfeito para prototipagem rápida e manutenção de design systems.
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-800/30 rounded-lg p-4">
+                    <h4 className="text-lg font-semibold text-white mb-2">📺 HLS.js (Streaming)</h4>
+                    <p className="text-gray-200 text-sm">
+                      HLS (HTTP Live Streaming) é o mesmo protocolo usado pelo YouTube e Netflix. 
+                      HLS.js permite reproduzir vídeos HLS em navegadores que não suportam nativamente. 
+                      Escolhi HLS porque oferece streaming adaptativo (ajusta qualidade conforme conexão) 
+                      e é o padrão do PeerTube para vídeos de alta qualidade.
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-800/30 rounded-lg p-4">
+                    <h4 className="text-lg font-semibold text-white mb-2">👆 React Swipeable</h4>
+                    <p className="text-gray-200 text-sm">
+                      Para replicar a experiência do Instagram, precisava de gestos de navegação (swipe). 
+                      React Swipeable detecta movimentos de toque e converte em ações de navegação. 
+                      É leve, confiável e funciona perfeitamente em dispositivos móveis e desktop.
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-800/30 rounded-lg p-4">
+                    <h4 className="text-lg font-semibold text-white mb-2">🔐 Crypto-JS + Gravatar</h4>
+                    <p className="text-gray-200 text-sm">
+                      Gravatar é um serviço que gera avatares baseados no email do usuário. 
+                      Crypto-JS gera o hash MD5 necessário para a API do Gravatar. 
+                      Escolhi Gravatar porque é universal, confiável e não requer cadastro adicional.
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-800/30 rounded-lg p-4">
+                    <h4 className="text-lg font-semibold text-white mb-2">📱 PWA (Progressive Web App)</h4>
+                    <p className="text-gray-200 text-sm">
+                      PWA permite que a aplicação funcione como um app nativo, podendo ser instalada no celular. 
+                      Isso melhora a experiência do usuário, permite notificações e funciona offline. 
+                      É a ponte entre web e mobile, oferecendo o melhor dos dois mundos.
+                    </p>
                   </div>
                 </div>
               </div>
