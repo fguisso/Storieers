@@ -2,8 +2,14 @@ import { useStories } from '../context/StoriesProvider';
 import ProgressBar from './ProgressBar';
 import StoryPlayer from './StoryPlayer';
 import StoryControls from './StoryControls';
+import RightSideButtons from './RightSideButtons';
 
-export default function StoryUI() {
+interface StoryUIProps {
+  onStoriesEnd?: () => void;
+  autoStart?: boolean;
+}
+
+export default function StoryUI({ onStoriesEnd, autoStart = false }: StoryUIProps) {
 	const { stories, currentIndex, next, prev, muted, toggleMuted, loading, error } = useStories();
 	const current = stories[currentIndex];
 
@@ -12,7 +18,17 @@ export default function StoryUI() {
 		return el ? el.currentTime : 0;
 	};
 
-	if (loading) return <div className="h-screen w-screen grid place-content-center text-white">Carregando…</div>;
+	const handleVideoEnd = () => {
+		if (currentIndex === stories.length - 1) {
+			// Se é o último vídeo, chama onStoriesEnd para voltar à página inicial
+			onStoriesEnd?.();
+		} else {
+			// Se não é o último, vai para o próximo
+			next();
+		}
+	};
+
+	if (loading) return <div className="h-screen w-screen bg-black grid place-content-center text-white text-xl">Carregando…</div>;
 	if (error) return <div className="h-screen w-screen grid place-content-center text-white">Erro: {error}</div>;
 	if (!current) return <div className="h-screen w-screen grid place-content-center text-white">Nenhum vídeo</div>;
 
@@ -21,8 +37,9 @@ export default function StoryUI() {
 			<StoryPlayer
 				video={current}
 				muted={muted}
-				onEnded={next}
-				onError={() => next()}
+				onEnded={handleVideoEnd}
+				onError={handleVideoEnd}
+				autoStart={autoStart}
 			/>
 
 			<div className="overlay-top" />
@@ -32,12 +49,24 @@ export default function StoryUI() {
 				<ProgressBar count={stories.length} currentIndex={currentIndex} duration={current.duration || 0} getCurrentTime={getCurrentTime} />
 			</div>
 
+			{/* Botão de fechar - posicionado logo após a barra de progresso */}
+			<button
+				onClick={onStoriesEnd}
+				className="absolute top-12 right-4 z-50 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-colors duration-200"
+				aria-label="Fechar stories"
+			>
+				<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+				</svg>
+			</button>
+
 			<div className="absolute bottom-16 left-4 right-4 z-30">
 				<div className="text-lg font-semibold drop-shadow">{current.title}</div>
 				<div className="text-sm opacity-90">@{current.author}@{current.instance}</div>
 			</div>
 
-			<StoryControls onPrev={prev} onNext={next} muted={muted} toggleMuted={toggleMuted} originalUrl={current.originalPageUrl} />
+			<RightSideButtons muted={muted} toggleMuted={toggleMuted} />
+			<StoryControls onPrev={prev} onNext={next} originalUrl={current.originalPageUrl} />
 		</div>
 	);
 }

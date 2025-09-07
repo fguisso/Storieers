@@ -1,14 +1,9 @@
 import './index.css';
 import './app.css';
-import { StoriesProvider } from './context/StoriesProvider';
-import StoryUI from './components/StoryUI';
+import StoriesWrapper from './components/StoriesWrapper';
 
 function App() {
-	return (
-		<StoriesProvider>
-			<StoryUI />
-		</StoriesProvider>
-	);
+	return <StoriesWrapper />;
 }
 
 export default App;

@@ -37,6 +37,7 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 							hls = null;
 							if (mp4Url) {
 								videoEl.src = mp4Url;
+								videoEl.load();
 								videoEl.play().catch(onError);
 							} else {
 								onError(new Error(`HLS fatal: ${data?.type}`));
