@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { VideoItem } from '../types/models';
 import { useHls } from '../hooks/useHls';
 
-export function StoryPlayer({ video, muted, onEnded, onError }: { video: VideoItem; muted: boolean; onEnded: () => void; onError: (e: unknown) => void; }) {
+export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false }: { video: VideoItem; muted: boolean; onEnded: () => void; onError: (e: unknown) => void; autoStart?: boolean; }) {
 	const ref = useRef<HTMLVideoElement | null>(null);
 	const [showInitialSpinner, setShowInitialSpinner] = useState(true);
 
@@ -19,18 +19,57 @@ export function StoryPlayer({ video, muted, onEnded, onError }: { video: VideoIt
 
 	useEffect(() => {
 		if (!ref.current) return;
-		// Try autoplay on video change - force play without user gesture
-		ref.current.muted = true; // Ensure muted for autoplay
-		ref.current.play().catch((error) => {
-			console.log('Autoplay failed, trying again:', error);
-			// If autoplay fails, try again after a short delay
-			setTimeout(() => {
-				ref.current?.play().catch(() => {
-					console.log('Autoplay failed completely');
-				});
-			}, 100);
-		});
-	}, [video.id]);
+		
+		// Se autoStart for true, força o play imediatamente
+		if (autoStart) {
+			ref.current.muted = true; // Ensure muted for autoplay
+			ref.current.play().catch((error) => {
+				console.log('AutoStart play failed, trying again:', error);
+				// If autoplay fails, try again after a short delay
+				setTimeout(() => {
+					ref.current?.play().catch(() => {
+						console.log('AutoStart play failed completely');
+					});
+				}, 100);
+			});
+		} else {
+			// Comportamento normal de autoplay
+			ref.current.muted = true; // Ensure muted for autoplay
+			ref.current.play().catch((error) => {
+				console.log('Autoplay failed, trying again:', error);
+				// If autoplay fails, try again after a short delay
+				setTimeout(() => {
+					ref.current?.play().catch(() => {
+						console.log('Autoplay failed completely');
+					});
+				}, 100);
+			});
+		}
+	}, [video.id, autoStart]);
+
+	// useEffect específico para autoStart quando o componente é montado
+	useEffect(() => {
+		if (autoStart && ref.current) {
+			// Força o play imediatamente quando o componente é montado com autoStart
+			const playVideo = () => {
+				if (ref.current) {
+					ref.current.muted = true;
+					ref.current.play().catch((error) => {
+						console.log('Immediate autoStart play failed:', error);
+						// Tenta novamente após um pequeno delay
+						setTimeout(() => {
+							ref.current?.play().catch(() => {
+								console.log('Immediate autoStart play failed completely');
+							});
+						}, 200);
+					});
+				}
+			};
+
+			// Tenta tocar imediatamente
+			playVideo();
+		}
+	}, [autoStart]);
 
 	useEffect(() => {
 		const videoEl = ref.current;
