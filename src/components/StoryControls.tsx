@@ -119,12 +119,10 @@ export function StoryControls({ onPrev, onNext, muted, toggleMuted, originalUrl 
 		<div
 			className="absolute inset-0"
 			{...handlers}
-			onMouseDownCapture={handlePressStart}
-			onMouseUpCapture={handlePressEnd}
-			onMouseLeave={handlePressCancel}
-			onTouchStartCapture={handlePressStart}
-			onTouchEndCapture={handlePressEnd}
-			onTouchCancelCapture={handlePressCancel}
+			onPointerDown={handlePressStart}
+			onPointerUp={handlePressEnd}
+			onPointerCancel={handlePressCancel}
+			onPointerLeave={handlePressCancel}
 		>
 			<div
 				className="tap-zone tap-left"

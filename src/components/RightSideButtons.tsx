@@ -7,6 +7,8 @@ export default function RightSideButtons({ muted, toggleMuted }: { muted: boolea
 				aria-label={muted ? 'Ativar som' : 'Silenciar'}
 				data-ui-control="true"
 				onClick={(e) => { e.stopPropagation(); toggleMuted(); }}
+				onPointerDown={(e) => e.stopPropagation()}
+				onPointerUp={(e) => e.stopPropagation()}
 				onMouseDown={(e) => e.stopPropagation()}
 				onTouchStart={(e) => e.stopPropagation()}
 				className="bg-black/60 text-white rounded-full w-12 h-12 grid place-content-center shadow-md active:scale-95"

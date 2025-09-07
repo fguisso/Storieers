@@ -55,12 +55,7 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 					});
 					hls.loadSource(hlsUrl);
 					hls.attachMedia(videoEl);
-					let played = false;
-					const tryPlay = () => {
-						if (played) return;
-						played = true;
-						videoEl.play().catch(() => undefined);
-					};
+					const tryPlay = () => { videoEl.play().catch(() => undefined); };
 					hls.on(Hls.Events.MANIFEST_PARSED, () => { tryPlay(); });
 					videoEl.addEventListener('canplay', tryPlay, { once: true } as EventListenerOptions);
 					setTimeout(() => { tryPlay(); }, 0);
