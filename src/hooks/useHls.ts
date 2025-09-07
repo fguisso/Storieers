@@ -19,6 +19,11 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 		const setup = async () => {
 			try {
 				videoEl.muted = muted;
+				if (muted) {
+					videoEl.setAttribute('muted', '');
+				} else {
+					videoEl.removeAttribute('muted');
+				}
 				videoEl.setAttribute('playsinline', 'true');
 				videoEl.autoplay = true;
 				videoEl.controls = false;
@@ -73,5 +78,16 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 		return () => {
 			try { hls?.destroy(); } catch { /* ignore destroy errors */ }
 		};
-	}, [videoEl, hlsUrl, mp4Url, muted, onEnded, onError]);
+	}, [videoEl, hlsUrl, mp4Url, onEnded, onError]);
+
+	// Update muted state without reinitializing the media source
+	useEffect(() => {
+		if (!videoEl) return;
+		videoEl.muted = muted;
+		if (muted) {
+			videoEl.setAttribute('muted', '');
+		} else {
+			videoEl.removeAttribute('muted');
+		}
+	}, [videoEl, muted]);
 }

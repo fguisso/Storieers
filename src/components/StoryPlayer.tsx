@@ -19,7 +19,7 @@ export function StoryPlayer({ video, muted, onEnded, onError }: { video: VideoIt
 
 	useEffect(() => {
 		if (!ref.current) return;
-		// Try autoplay on video change
+		// Ensure autoplay on mount and on video change
 		ref.current.play().catch(() => undefined);
 	}, [video.id]);
 
