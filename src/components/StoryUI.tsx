@@ -49,10 +49,10 @@ export default function StoryUI({ onStoriesEnd, autoStart = false }: StoryUIProp
 				<ProgressBar count={stories.length} currentIndex={currentIndex} duration={current.duration || 0} getCurrentTime={getCurrentTime} />
 			</div>
 
-			{/* Botão de fechar - posicionado abaixo da barra de progresso */}
+			{/* Botão de fechar - posicionado logo após a barra de progresso */}
 			<button
 				onClick={onStoriesEnd}
-				className="absolute top-16 right-4 z-50 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-colors duration-200"
+				className="absolute top-12 right-4 z-50 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-colors duration-200"
 				aria-label="Fechar stories"
 			>
 				<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -9,10 +9,11 @@ export default function StoriesWrapper() {
 
   const handleAvatarClick = () => {
     setIsTransitioning(true);
+    // Delay maior para dar tempo do vídeo carregar
     setTimeout(() => {
       setShowStories(true);
       setIsTransitioning(false);
-    }, 300);
+    }, 500);
   };
 
   const handleStoriesEnd = () => {

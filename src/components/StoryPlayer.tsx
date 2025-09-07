@@ -5,6 +5,7 @@ import { useHls } from '../hooks/useHls';
 export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false }: { video: VideoItem; muted: boolean; onEnded: () => void; onError: (e: unknown) => void; autoStart?: boolean; }) {
 	const ref = useRef<HTMLVideoElement | null>(null);
 	const [showInitialSpinner, setShowInitialSpinner] = useState(true);
+	const [isVideoReady, setIsVideoReady] = useState(false);
 
 	useHls({
 		videoEl: ref.current,
@@ -17,81 +18,150 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 		},
 	});
 
+	// Função para tentar tocar o vídeo
+	const attemptPlay = () => {
+		if (!ref.current) return;
+		
+		ref.current.muted = true; // Ensure muted for autoplay
+		ref.current.play().catch((error) => {
+			console.log('Play failed, retrying...', error);
+			// Retry after a short delay
+			setTimeout(() => {
+				ref.current?.play().catch(() => {
+					console.log('Play failed completely');
+				});
+			}, 100);
+		});
+	};
+
+	// useEffect para tentar play quando o vídeo muda
 	useEffect(() => {
 		if (!ref.current) return;
 		
-		// Se autoStart for true, força o play imediatamente
-		if (autoStart) {
-			ref.current.muted = true; // Ensure muted for autoplay
-			ref.current.play().catch((error) => {
-				console.log('AutoStart play failed, trying again:', error);
-				// If autoplay fails, try again after a short delay
-				setTimeout(() => {
-					ref.current?.play().catch(() => {
-						console.log('AutoStart play failed completely');
-					});
-				}, 100);
-			});
-		} else {
-			// Comportamento normal de autoplay
-			ref.current.muted = true; // Ensure muted for autoplay
-			ref.current.play().catch((error) => {
-				console.log('Autoplay failed, trying again:', error);
-				// If autoplay fails, try again after a short delay
-				setTimeout(() => {
-					ref.current?.play().catch(() => {
-						console.log('Autoplay failed completely');
-					});
-				}, 100);
-			});
-		}
-	}, [video.id, autoStart]);
+		// Reset states when video changes
+		setIsVideoReady(false);
+		setShowInitialSpinner(true);
+		
+		// Try to play immediately
+		attemptPlay();
+	}, [video.id]);
 
-	// useEffect específico para autoStart quando o componente é montado
+	// useEffect para tentar play quando o vídeo está pronto
 	useEffect(() => {
-		if (autoStart && ref.current) {
-			// Força o play imediatamente quando o componente é montado com autoStart
-			const playVideo = () => {
-				if (ref.current) {
-					ref.current.muted = true;
-					ref.current.play().catch((error) => {
-						console.log('Immediate autoStart play failed:', error);
-						// Tenta novamente após um pequeno delay
-						setTimeout(() => {
-							ref.current?.play().catch(() => {
-								console.log('Immediate autoStart play failed completely');
-							});
-						}, 200);
-					});
-				}
-			};
-
-			// Tenta tocar imediatamente
-			playVideo();
+		if (isVideoReady && ref.current) {
+			attemptPlay();
 		}
-	}, [autoStart]);
+	}, [isVideoReady]);
 
 	useEffect(() => {
 		const videoEl = ref.current;
 		if (!videoEl) return;
 		setShowInitialSpinner(true);
 
-		const hideInitial = () => setShowInitialSpinner(false);
+		const hideInitial = () => {
+			setShowInitialSpinner(false);
+			setIsVideoReady(true);
+		};
+
+		const handleCanPlay = () => {
+			setIsVideoReady(true);
+			// Se autoStart estiver ativo, tenta tocar imediatamente
+			if (autoStart) {
+				attemptPlay();
+			}
+		};
 
 		videoEl.addEventListener('loadeddata', hideInitial);
-		videoEl.addEventListener('canplay', hideInitial);
+		videoEl.addEventListener('canplay', handleCanPlay);
 		videoEl.addEventListener('playing', hideInitial);
 
 		return () => {
 			videoEl.removeEventListener('loadeddata', hideInitial);
-			videoEl.removeEventListener('canplay', hideInitial);
+			videoEl.removeEventListener('canplay', handleCanPlay);
 			videoEl.removeEventListener('playing', hideInitial);
 		};
-	}, [video.id]);
+	}, [video.id, autoStart]);
+
+	// useEffect específico para autoStart - força o play quando o componente é montado
+	useEffect(() => {
+		if (autoStart && ref.current) {
+			// Força o play imediatamente quando autoStart é true
+			const forcePlay = () => {
+				if (ref.current) {
+					ref.current.muted = true;
+					ref.current.play().catch((error) => {
+						console.log('Force play failed, retrying...', error);
+						// Retry multiple times with increasing delays
+						setTimeout(() => {
+							ref.current?.play().catch(() => {
+								setTimeout(() => {
+									ref.current?.play().catch(() => {
+										console.log('Force play failed completely');
+									});
+								}, 300);
+							});
+						}, 100);
+					});
+				}
+			};
+
+			// Tenta tocar imediatamente
+			forcePlay();
+		}
+	}, [autoStart]);
+
+	// useEffect para monitorar quando o vídeo está pronto e forçar play
+	useEffect(() => {
+		const videoEl = ref.current;
+		if (!videoEl || !autoStart) return;
+
+		const handleVideoReady = () => {
+			if (videoEl.readyState >= 3) { // HAVE_FUTURE_DATA
+				videoEl.play().catch((error) => {
+					console.log('Video ready play failed:', error);
+				});
+			}
+		};
+
+		// Tenta tocar quando o vídeo está pronto
+		handleVideoReady();
+
+		// Adiciona listeners para tentar tocar quando o vídeo estiver pronto
+		videoEl.addEventListener('loadeddata', handleVideoReady);
+		videoEl.addEventListener('canplay', handleVideoReady);
+		videoEl.addEventListener('canplaythrough', handleVideoReady);
+
+		return () => {
+			videoEl.removeEventListener('loadeddata', handleVideoReady);
+			videoEl.removeEventListener('canplay', handleVideoReady);
+			videoEl.removeEventListener('canplaythrough', handleVideoReady);
+		};
+	}, [autoStart, video.id]);
 
 	return (
 		<div className="story-container">
-			<video ref={ref} className="video-el" playsInline muted={muted} autoPlay />
+			<video 
+				ref={ref} 
+				className="video-el" 
+				playsInline 
+				muted={muted} 
+				autoPlay 
+				preload="auto"
+				onLoadedData={() => {
+					if (autoStart && ref.current) {
+						ref.current.play().catch(() => {
+							console.log('AutoStart play on loadedData failed');
+						});
+					}
+				}}
+				onCanPlay={() => {
+					if (autoStart && ref.current) {
+						ref.current.play().catch(() => {
+							console.log('AutoStart play on canPlay failed');
+						});
+					}
+				}}
+			/>
 			{showInitialSpinner && (
 				<div className="absolute inset-0 z-40 grid place-content-center pointer-events-none">
 					<div className="loading-spinner" />
