@@ -1,11 +1,9 @@
 import { useRef, useState } from 'react';
 import { useSwipeable } from 'react-swipeable';
 
-export function StoryControls({ onPrev, onNext, muted, toggleMuted, originalUrl }: {
+export function StoryControls({ onPrev, onNext, originalUrl }: {
 	onPrev: () => void;
 	onNext: () => void;
-	muted: boolean;
-	toggleMuted: () => void;
 	originalUrl: string;
 }) {
 	const handlers = useSwipeable({

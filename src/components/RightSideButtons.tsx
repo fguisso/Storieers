@@ -1,4 +1,3 @@
-import React from 'react';
 
 export default function RightSideButtons({ muted, toggleMuted }: { muted: boolean; toggleMuted: () => void; }) {
 	return (
