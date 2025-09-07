@@ -51,7 +51,10 @@ const VideoDetailsSchema = z.object({
 	url: z.string().optional(),
 	account: z.object({ name: z.string().optional(), url: z.string().optional() }).optional(),
 	videoChannel: z.object({ id: z.number(), name: z.string().optional(), url: z.string().optional() }).optional(),
-	files: z.array(z.object({ fileUrl: z.string().url().optional() })).optional(),
+	files: z.array(z.object({ 
+		fileUrl: z.string().url().optional(),
+		mimeType: z.string().optional()
+	})).optional(),
 	streamingPlaylists: z.array(z.object({
 		playlistUrl: z.string().url().optional(),
 		files: z.array(z.object({ resolution: z.object({ id: z.number().optional() }).optional() })).optional(),
@@ -164,8 +167,16 @@ function extractHlsUrl(video: z.infer<typeof VideoDetailsSchema>): string | unde
 
 function extractMp4Url(video: z.infer<typeof VideoDetailsSchema>): string | undefined {
 	const files = video.files || [];
-	const mp4 = files.find(f => !!f.fileUrl);
-	return mp4?.fileUrl;
+	// heurística de MP4: se a API já devolveu arquivo web (files[0]), use; senão, tente rota /download
+	const mp4 = files.find(f => f.fileUrl && (f.mimeType?.includes('video/mp4') || /video\/mp4/.test(f.fileUrl)));
+	if (mp4?.fileUrl) return mp4.fileUrl;
+	
+	// fallback: tente rota /download com sufixo comum
+	const uuid = video.uuid;
+	if (uuid) {
+		return `${baseUrl}/download/${uuid}-480.mp4`;
+	}
+	return undefined;
 }
 
 export async function fetchChannelVideos(channelId: number | undefined, accountName?: string): Promise<VideoItem[]> {

@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import type { VideoItem } from '../types/models';
 import { useHls } from '../hooks/useHls';
 
-export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false }: { video: VideoItem; muted: boolean; onEnded: () => void; onError: (e: unknown) => void; autoStart?: boolean; }) {
+export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false, toggleMuted, nextVideo }: { video: VideoItem; muted: boolean; onEnded: () => void; onError: (e: unknown) => void; autoStart?: boolean; toggleMuted?: () => void; nextVideo?: VideoItem; }) {
 	const ref = useRef<HTMLVideoElement | null>(null);
 	const [showInitialSpinner, setShowInitialSpinner] = useState(true);
 	const [isVideoReady, setIsVideoReady] = useState(false);
+	const preloadedRef = useRef(false);
 
 	useHls({
 		videoEl: ref.current,
@@ -138,6 +139,55 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 		};
 	}, [autoStart, video.id]);
 
+	// Preload do próximo vídeo a ~2s do fim
+	useEffect(() => {
+		const videoEl = ref.current;
+		if (!videoEl || !nextVideo) return;
+
+		const onTime = () => {
+			if (!video.duration) return;
+			const remain = video.duration - videoEl.currentTime;
+			if (remain < 2 && !preloadedRef.current) {
+				preloadedRef.current = true;
+				// "aquece" o manifest (sem bloquear UI)
+				const url = nextVideo.hlsUrl ?? nextVideo.mp4Url;
+				if (url) {
+					fetch(url, { mode: 'cors' }).catch(() => {});
+				}
+			}
+		};
+
+		videoEl.addEventListener('timeupdate', onTime);
+		return () => videoEl.removeEventListener('timeupdate', onTime);
+	}, [video.duration, nextVideo]);
+
+	// Reset preload flag quando muda o vídeo
+	useEffect(() => {
+		preloadedRef.current = false;
+	}, [video.id]);
+
+	// Handler para tentar play quando usuário toca na tela (se autoplay travar)
+	useEffect(() => {
+		const videoEl = ref.current;
+		if (!videoEl) return;
+
+		const handleUserInteraction = () => {
+			if (videoEl.paused) {
+				videoEl.play().catch(() => {
+					console.log('User interaction play failed');
+				});
+			}
+		};
+
+		videoEl.addEventListener('click', handleUserInteraction);
+		videoEl.addEventListener('touchstart', handleUserInteraction);
+
+		return () => {
+			videoEl.removeEventListener('click', handleUserInteraction);
+			videoEl.removeEventListener('touchstart', handleUserInteraction);
+		};
+	}, [video.id]);
+
 	return (
 		<div className="story-container">
 			<video 
@@ -147,6 +197,8 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 				muted={muted} 
 				autoPlay 
 				preload="auto"
+				crossOrigin="anonymous"
+				poster={video.thumbnailUrl}
 				onLoadedData={() => {
 					if (autoStart && ref.current) {
 						ref.current.play().catch(() => {
@@ -162,6 +214,15 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 					}
 				}}
 			/>
+			{muted && toggleMuted && (
+				<div 
+					className="tap-to-unmute absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 text-white text-lg font-medium cursor-pointer"
+					onClick={toggleMuted}
+					style={{ touchAction: 'none' }}
+				>
+					🔇 Toque para ativar o som
+				</div>
+			)}
 			{showInitialSpinner && (
 				<div className="absolute inset-0 z-40 grid place-content-center pointer-events-none">
 					<div className="loading-spinner" />

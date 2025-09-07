@@ -12,6 +12,7 @@ interface StoryUIProps {
 export default function StoryUI({ onStoriesEnd, autoStart = false }: StoryUIProps) {
 	const { stories, currentIndex, next, prev, muted, toggleMuted, loading, error } = useStories();
 	const current = stories[currentIndex];
+	const nextVideo = stories[currentIndex + 1];
 
 	const getCurrentTime = () => {
 		const el = document.querySelector('video');
@@ -40,6 +41,8 @@ export default function StoryUI({ onStoriesEnd, autoStart = false }: StoryUIProp
 				onEnded={handleVideoEnd}
 				onError={handleVideoEnd}
 				autoStart={autoStart}
+				toggleMuted={toggleMuted}
+				nextVideo={nextVideo}
 			/>
 
 			<div className="overlay-top" />
