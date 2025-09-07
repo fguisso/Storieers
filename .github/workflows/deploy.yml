@@ -38,6 +38,7 @@ jobs:
           VITE_MAX_DURATION: 120
           VITE_PAGE_COUNT: 20
           VITE_BASE_PATH: /storieers
+          VITE_USER_EMAIL: fguisso@gmail.com
         run: npm run build
 
       - name: Upload artifact
