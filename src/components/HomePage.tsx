@@ -53,21 +53,11 @@ export default function HomePage({ onAvatarClick }: HomePageProps) {
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mt-8">
           <div className="space-y-6 text-left">
             <p className="text-lg text-gray-200 leading-relaxed">
-              Depois de anos usando o Instagram, percebi que estava perdendo o controle sobre minhas próprias histórias. 
-              Os algoritmos decidiam quem via meus posts, as plataformas comerciais limitavam minha criatividade, 
-              e eu queria algo mais autêntico para compartilhar minhas ideias e viagens com minha família.
+		Saí do Instagram porque não queria mais ficar preso só às redes das grandes empresas, que controlam quase tudo e usam algoritmos para decidir o que a gente vê e até nos manipular prendendo nossa atenção. Também não gosto de como nossos dados viram produto para eles. Hoje uso serviços federados: em vez de uma única rede centralizada, são várias comunidades menores, como pequenas cooperatvas que se conectam entre si. Às vezes até uso meu próprio servidor caseiro, com mais liberdade e controle sobre meus dados.
             </p>
-            
-            <p className="text-lg text-gray-200 leading-relaxed">
-              Então criei o <strong className="text-white">Storieers</strong> - um sistema de stories próprio, 
-              onde eu tenho controle total sobre meu conteúdo, sem algoritmos, sem limitações comerciais, 
-              e com a liberdade de compartilhar o que realmente importa para mim e para quem eu escolher.
-            </p>
-            
-            <p className="text-lg text-gray-200 leading-relaxed">
-              Agora posso compartilhar minhas aventuras, reflexões e momentos especiais de forma genuína, 
-              sabendo que cada pessoa que vê meus stories está lá porque realmente se importa.
-            </p>
+            <p className="text-lg text-white/60 leading-relaxed">
+		<i>Aviso: ainda não consegui fugir totalmente das grandes empresas, mas aos poucos vamos nos concientizando e voltando ao controle dos nossos dados e nossa vida.</i>
+	    </p>
           </div>
         </div>
 
@@ -219,15 +209,6 @@ export default function HomePage({ onAvatarClick }: HomePageProps) {
                   Qualquer pessoa pode fazer fork do projeto, alterar as variáveis de ambiente 
                   e criar seu próprio sistema de stories personalizado.
                 </p>
-                
-                <div className="bg-gray-800/50 rounded-lg p-4">
-                  <p className="text-sm text-gray-300 mb-2">Para usar seu próprio PeerTube:</p>
-                  <code className="text-green-400 text-sm block">
-                    VITE_INSTANCE=https://sua-instancia-peertube.com<br/>
-                    VITE_START_VIDEO=https://sua-instancia-peertube.com/w/seu-video<br/>
-                    VITE_USER_EMAIL=seu-email@exemplo.com
-                  </code>
-                </div>
               </div>
 
               <div className="pt-4 border-t border-white/10">
