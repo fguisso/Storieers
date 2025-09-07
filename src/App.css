@@ -1,3 +1,23 @@
+/* Story video and overlay styles */
+.story-video {
+	width: 100vw;
+	height: 100vh;
+	object-fit: cover;
+	background: #000;
+}
+
+.tap-to-unmute {
+	position: absolute;
+	left: 50%;
+	bottom: 20%;
+	transform: translateX(-50%);
+	z-index: 50;
+	background: rgba(0,0,0,0.5);
+	color: white;
+	padding: 8px 12px;
+	border-radius: 9999px;
+	font-size: 14px;
+}
 #root {
   max-width: 1280px;
   margin: 0 auto;
