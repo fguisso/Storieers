@@ -43,7 +43,7 @@ export function StoryPlayer({ video, muted, onEnded, onError }: { video: VideoIt
 
 	return (
 		<div className="story-container">
-			<video ref={ref} className="video-el" playsInline muted={muted} autoPlay />
+			<video ref={ref} className="video-el" playsInline muted={muted} autoPlay preload="auto" />
 			{showInitialSpinner && (
 				<div className="absolute inset-0 z-40 grid place-content-center pointer-events-none">
 					<div className="loading-spinner" />

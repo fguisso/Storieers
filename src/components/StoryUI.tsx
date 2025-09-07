@@ -23,7 +23,7 @@ export default function StoryUI() {
 				video={current}
 				muted={muted}
 				onEnded={next}
-				onError={() => next()}
+				onError={next}
 			/>
 
 			<div className="overlay-top" />

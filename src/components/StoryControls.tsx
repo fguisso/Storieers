@@ -46,7 +46,24 @@ export function StoryControls({ onPrev, onNext, muted, toggleMuted, originalUrl 
 
 	const HOLD_CONFIRM_MS = 600;
 
+	const isFromUiControl = (e: React.SyntheticEvent) => {
+		const native = e.nativeEvent as Event & { composedPath?: () => EventTarget[] };
+		const path = native.composedPath ? native.composedPath() : undefined;
+		if (path && path.length) {
+			for (const el of path) {
+				if ((el as HTMLElement)?.dataset?.uiControl === 'true') return true;
+			}
+		}
+		let node = e.target as HTMLElement | null;
+		while (node) {
+			if (node.dataset?.uiControl === 'true') return true;
+			node = node.parentElement;
+		}
+		return false;
+	};
+
 	const handlePressStart = (e: React.MouseEvent | React.TouchEvent) => {
+		if (isFromUiControl(e)) return; // ignore UI controls
 		// Detect touch start and ignore subsequent emulated mouse events
 		if ('touches' in e) {
 			if (e.touches.length > 1) return; // ignore multi-touch
@@ -67,7 +84,8 @@ export function StoryControls({ onPrev, onNext, muted, toggleMuted, originalUrl 
 		}, HOLD_CONFIRM_MS);
 	};
 
-	const handlePressEnd = () => {
+	const handlePressEnd = (e?: React.MouseEvent | React.TouchEvent) => {
+		if (e && isFromUiControl(e)) return; // ignore UI controls
 		const wasActive = longPressActive;
 		clearHoldConfirmTimer();
 		const elapsed = Date.now() - pressStartTimeRef.current;
@@ -86,7 +104,8 @@ export function StoryControls({ onPrev, onNext, muted, toggleMuted, originalUrl 
 		}
 	};
 
-	const handlePressCancel = () => {
+	const handlePressCancel = (e?: React.MouseEvent | React.TouchEvent) => {
+		if (e && isFromUiControl(e)) return; // ignore UI controls
 		clearHoldConfirmTimer();
 		// Cancel behaves like quick release (resume and allow nav)
 		allowTapNavRef.current = true;
