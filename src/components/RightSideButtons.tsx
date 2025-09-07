@@ -2,10 +2,12 @@ import React from 'react';
 
 export default function RightSideButtons({ muted, toggleMuted }: { muted: boolean; toggleMuted: () => void; }) {
 	return (
-		<div className="absolute bottom-20 right-3 z-40 flex flex-col items-center gap-3">
+		<div className="absolute bottom-20 right-3 z-50 flex flex-col items-center gap-3 pointer-events-auto">
 			<button
 				aria-label={muted ? 'Ativar som' : 'Silenciar'}
-				onClick={toggleMuted}
+				onClick={(e) => { e.stopPropagation(); toggleMuted(); }}
+				onMouseDown={(e) => e.stopPropagation()}
+				onTouchStart={(e) => e.stopPropagation()}
 				className="bg-black/60 text-white rounded-full w-12 h-12 grid place-content-center shadow-md active:scale-95"
 			>
 				{muted ? (
