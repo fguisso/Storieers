@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { VideoItem } from '../types/models';
 import { useHls } from '../hooks/useHls';
 
-export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false }: { video: VideoItem; muted: boolean; onEnded: () => void; onError: (e: unknown) => void; autoStart?: boolean; }) {
+export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false, toggleMuted }: { video: VideoItem; muted: boolean; onEnded: () => void; onError: (e: unknown) => void; autoStart?: boolean; toggleMuted: () => void; }) {
 	const ref = useRef<HTMLVideoElement | null>(null);
 	const [showInitialSpinner, setShowInitialSpinner] = useState(true);
 	const [isVideoReady, setIsVideoReady] = useState(false);
@@ -23,7 +23,7 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 		if (!ref.current) return;
 		
 		ref.current.muted = true; // Ensure muted for autoplay
-		ref.current.play().catch((error) => {
+		ref.current.play().catch((error: unknown) => {
 			console.log('Play failed, retrying...', error);
 			// Retry after a short delay
 			setTimeout(() => {
@@ -89,7 +89,7 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 			const forcePlay = () => {
 				if (ref.current) {
 					ref.current.muted = true;
-					ref.current.play().catch((error) => {
+					ref.current.play().catch((error: unknown) => {
 						console.log('Force play failed, retrying...', error);
 						// Retry multiple times with increasing delays
 						setTimeout(() => {
@@ -142,11 +142,13 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 		<div className="story-container">
 			<video 
 				ref={ref} 
-				className="video-el" 
+				className="story-video" 
 				playsInline 
 				muted={muted} 
 				autoPlay 
 				preload="auto"
+				crossOrigin="anonymous"
+				poster={video.thumbnailUrl}
 				onLoadedData={() => {
 					if (autoStart && ref.current) {
 						ref.current.play().catch(() => {
@@ -162,6 +164,11 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 					}
 				}}
 			/>
+			{muted && (
+				<div className="tap-to-unmute" onClick={toggleMuted}>
+					<span>🔇 Toque para ativar o som</span>
+				</div>
+			)}
 			{showInitialSpinner && (
 				<div className="absolute inset-0 z-40 grid place-content-center pointer-events-none">
 					<div className="loading-spinner" />

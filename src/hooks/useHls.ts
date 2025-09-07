@@ -1,6 +1,15 @@
 import Hls from 'hls.js';
 import { useEffect } from 'react';
 
+const getLastBw = () => {
+  const v = localStorage.getItem('hls:lastBwKbps');
+  return v ? Number(v) * 1000 : 500_000; // 500 Kbps seed
+};
+const saveBw = (hls: Hls) => {
+  const est = (hls as any)?.bandwidthEstimate;
+  if (est) localStorage.setItem('hls:lastBwKbps', String(Math.round(est / 1000)));
+};
+
 export interface UseHlsOptions {
 	videoEl: HTMLVideoElement | null;
 	hlsUrl?: string;
@@ -22,16 +31,25 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 				videoEl.setAttribute('playsinline', 'true');
 				videoEl.autoplay = true;
 				videoEl.controls = false;
+				(videoEl as any).crossOrigin = 'anonymous';
 
 				videoEl.onended = onEnded;
 				videoEl.onerror = () => onError(new Error('Video element error'));
 
 				if (hlsUrl && Hls.isSupported()) {
 					hls = new Hls({
-						maxBufferSize: 60 * 1000 * 1000,
-						maxMaxBufferLength: 30,
+						capLevelToPlayerSize: true,
+						startLevel: -1,
+						abrEwmaDefaultEstimate: getLastBw(),
+						maxBufferLength: 12,
+						maxBufferSize: 20 * 1000 * 1000,
+						startFragPrefetch: true,
+						lowLatencyMode: false,
+						xhrSetup: (xhr: XMLHttpRequest) => {
+							xhr.withCredentials = false;
+						},
 					});
-					hls.on(Hls.Events.ERROR, (_, data) => {
+					hls.on(Hls.Events.ERROR, (_: unknown, data: { fatal?: boolean; type?: string }) => {
 						if (data?.fatal) {
 							try { hls?.destroy(); } catch { /* ignore destroy errors */ }
 							hls = null;
@@ -44,8 +62,11 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 							}
 						}
 					});
-					hls.loadSource(hlsUrl);
+					hls.on(Hls.Events.LEVEL_SWITCHED, () => saveBw(hls!));
+					hls.on(Hls.Events.LEVEL_LOADED, () => saveBw(hls!));
+					hls.on(Hls.Events.FRAG_LOADED, () => saveBw(hls!));
 					hls.attachMedia(videoEl);
+					hls.loadSource(hlsUrl);
 					await videoEl.play().catch(() => undefined);
 					return;
 				}

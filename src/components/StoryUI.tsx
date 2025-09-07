@@ -1,3 +1,4 @@
+import React, { useEffect, useRef } from 'react';
 import { useStories } from '../context/StoriesProvider';
 import ProgressBar from './ProgressBar';
 import StoryPlayer from './StoryPlayer';
@@ -12,6 +13,7 @@ interface StoryUIProps {
 export default function StoryUI({ onStoriesEnd, autoStart = false }: StoryUIProps) {
 	const { stories, currentIndex, next, prev, muted, toggleMuted, loading, error } = useStories();
 	const current = stories[currentIndex];
+	const preloadedRef = useRef(false);
 
 	const getCurrentTime = () => {
 		const el = document.querySelector('video');
@@ -28,6 +30,27 @@ export default function StoryUI({ onStoriesEnd, autoStart = false }: StoryUIProp
 		}
 	};
 
+	// Preload do próximo vídeo (manifest) a ~2s do fim
+	useEffect(() => {
+		const el = document.querySelector('video');
+		if (!el || !current?.duration) return;
+		const onTime = () => {
+			const remain = current.duration - el.currentTime;
+			if (remain < 2 && stories[currentIndex + 1] && !preloadedRef.current) {
+				preloadedRef.current = true;
+				const nextItem = stories[currentIndex + 1];
+				const url = nextItem.hlsUrl ?? nextItem.mp4Url;
+				if (url) fetch(url, { mode: 'cors' }).catch(() => {});
+			}
+		};
+		el.addEventListener('timeupdate', onTime);
+		return () => el.removeEventListener('timeupdate', onTime);
+	}, [currentIndex, current?.duration, stories]);
+
+	useEffect(() => {
+		preloadedRef.current = false;
+	}, [currentIndex]);
+
 	if (loading) return <div className="h-screen w-screen bg-black grid place-content-center text-white text-xl">Carregando…</div>;
 	if (error) return <div className="h-screen w-screen grid place-content-center text-white">Erro: {error}</div>;
 	if (!current) return <div className="h-screen w-screen grid place-content-center text-white">Nenhum vídeo</div>;
@@ -40,6 +63,7 @@ export default function StoryUI({ onStoriesEnd, autoStart = false }: StoryUIProp
 				onEnded={handleVideoEnd}
 				onError={handleVideoEnd}
 				autoStart={autoStart}
+				toggleMuted={toggleMuted}
 			/>
 
 			<div className="overlay-top" />

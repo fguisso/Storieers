@@ -59,6 +59,7 @@ export function StoryControls({ onPrev, onNext, originalUrl }: {
 	return (
 		<div
 			className="absolute inset-0"
+			style={{ touchAction: 'none' }}
 			{...handlers}
 			onPointerDown={startHold}
 			onPointerUp={endHold}
