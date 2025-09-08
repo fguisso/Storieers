@@ -10,7 +10,6 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false,
 	useHls({
 		videoEl: ref.current,
 		hlsUrl: video.hlsUrl,
-		mp4Url: video.mp4Url,
 		muted,
 		onEnded,
 		onError: (e) => {
@@ -142,7 +141,7 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false,
 		<div className="story-container">
 			<video 
 				ref={ref} 
-				className="story-video" 
+				className="video-el story-video" 
 				playsInline 
 				muted={muted} 
 				autoPlay 

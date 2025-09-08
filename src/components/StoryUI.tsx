@@ -39,7 +39,7 @@ export default function StoryUI({ onStoriesEnd, autoStart = false }: StoryUIProp
 			if (remain < 2 && stories[currentIndex + 1] && !preloadedRef.current) {
 				preloadedRef.current = true;
 				const nextItem = stories[currentIndex + 1];
-				const url = nextItem.hlsUrl ?? nextItem.mp4Url;
+				const url = nextItem.hlsUrl;
 				if (url) fetch(url, { mode: 'cors' }).catch(() => {});
 			}
 		};
