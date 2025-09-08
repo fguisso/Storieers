@@ -161,11 +161,6 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false,
 					}
 				}}
 			/>
-			{muted && (
-				<div className="tap-to-unmute" onClick={toggleMuted}>
-					<span>🔇 Toque para ativar o som</span>
-				</div>
-			)}
 			{showInitialSpinner && (
 				<div className="absolute inset-0 z-40 grid place-content-center pointer-events-none">
 					<div className="loading-spinner" />
