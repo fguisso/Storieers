@@ -13,13 +13,12 @@ const saveBw = (hls: Hls) => {
 export interface UseHlsOptions {
 	videoEl: HTMLVideoElement | null;
 	hlsUrl?: string;
-	mp4Url?: string;
 	muted: boolean;
 	onEnded: () => void;
 	onError: (err: unknown) => void;
 }
 
-export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: UseHlsOptions) {
+export function useHls({ videoEl, hlsUrl, muted, onEnded, onError }: UseHlsOptions) {
 	useEffect(() => {
 		if (!videoEl) return;
 
@@ -53,13 +52,7 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 						if (data?.fatal) {
 							try { hls?.destroy(); } catch { /* ignore destroy errors */ }
 							hls = null;
-							if (mp4Url) {
-								videoEl.src = mp4Url;
-								videoEl.load();
-								videoEl.play().catch(onError);
-							} else {
-								onError(new Error(`HLS fatal: ${data?.type}`));
-							}
+							onError(new Error(`HLS fatal: ${data?.type}`));
 						}
 					});
 					hls.on(Hls.Events.LEVEL_SWITCHED, () => saveBw(hls!));
@@ -71,15 +64,9 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 					return;
 				}
 
-				// Native HLS (Safari) or fallback to MP4
+				// Native HLS (Safari)
 				if (hlsUrl && videoEl.canPlayType('application/vnd.apple.mpegurl')) {
 					videoEl.src = hlsUrl;
-					await videoEl.play().catch(() => undefined);
-					return;
-				}
-
-				if (mp4Url) {
-					videoEl.src = mp4Url;
 					await videoEl.play().catch(() => undefined);
 					return;
 				}
@@ -95,5 +82,5 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 		return () => {
 			try { hls?.destroy(); } catch { /* ignore destroy errors */ }
 		};
-	}, [videoEl, hlsUrl, mp4Url, muted, onEnded, onError]);
+	}, [videoEl, hlsUrl, muted, onEnded, onError]);
 }

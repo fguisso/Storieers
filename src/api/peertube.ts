@@ -162,10 +162,9 @@ function extractHlsUrl(video: z.infer<typeof VideoDetailsSchema>): string | unde
 	return master?.playlistUrl;
 }
 
-function extractMp4Url(video: z.infer<typeof VideoDetailsSchema>): string | undefined {
-	const files = video.files || [];
-	const mp4 = files.find((f: { fileUrl?: string }) => !!f.fileUrl);
-	return mp4?.fileUrl;
+// MP4 fallback removed per requirements
+function extractMp4Url(_video: z.infer<typeof VideoDetailsSchema>): string | undefined {
+	return undefined;
 }
 
 export async function fetchChannelVideos(channelId: number | undefined, accountName?: string): Promise<VideoItem[]> {
@@ -220,10 +219,7 @@ export async function fetchChannelVideos(channelId: number | undefined, accountN
 		if (MAX_DURATION && duration > MAX_DURATION) continue;
 		const thumbnailUrl = buildThumbnailUrl(raw?.thumbnailPath ?? d?.thumbnailPath);
 		const hlsUrl = d ? extractHlsUrl(d) : undefined;
-		let mp4Url = d ? extractMp4Url(d) : undefined;
-		if (!mp4Url && uuid) {
-			mp4Url = `${baseUrl}/download/${uuid}-480.mp4`;
-		}
+		const mp4Url = undefined;
 		videos.push({
 			id,
 			uuid,
