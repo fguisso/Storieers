@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { flushSync } from 'react-dom';
 import { StoriesProvider } from '../context/StoriesProvider';
 import HomePage from './HomePage';
 import StoryUI from './StoryUI';
@@ -8,9 +9,23 @@ export default function StoriesWrapper() {
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const handleAvatarClick = () => {
-    // Abrir imediatamente para preservar o gesto do usuário para autoplay
-    setShowStories(true);
-    setIsTransitioning(false);
+    // Monta a tela de stories imediatamente dentro do mesmo gesto do usuário
+    flushSync(() => {
+      setShowStories(true);
+      setIsTransitioning(false);
+    });
+
+    // Desbloqueia e inicia o vídeo imediatamente no mesmo gesto
+    const videoEl = document.querySelector('video');
+    if (videoEl) {
+      try { videoEl.muted = true; } catch { /* ignore */ }
+      try { videoEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
+      const directPlay = () => { try { void videoEl.play(); } catch { /* ignore */ } };
+      directPlay();
+      // Redundância: tentar tocar assim que o player sinalizar capacidade
+      videoEl.addEventListener('canplay', directPlay, { once: true });
+      videoEl.addEventListener('loadeddata', directPlay, { once: true });
+    }
   };
 
   const handleStoriesEnd = () => {
