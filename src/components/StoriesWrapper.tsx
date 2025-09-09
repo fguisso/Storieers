@@ -8,12 +8,9 @@ export default function StoriesWrapper() {
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const handleAvatarClick = () => {
-    setIsTransitioning(true);
-    // Delay maior para dar tempo do vídeo carregar
-    setTimeout(() => {
-      setShowStories(true);
-      setIsTransitioning(false);
-    }, 500);
+    // Abrir imediatamente para preservar o gesto do usuário para autoplay
+    setShowStories(true);
+    setIsTransitioning(false);
   };
 
   const handleStoriesEnd = () => {
