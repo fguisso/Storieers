@@ -21,7 +21,6 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false,
 	const attemptPlay = () => {
 		if (!ref.current) return;
 		
-		ref.current.muted = true; // Ensure muted for autoplay
 		ref.current.play().catch((error: unknown) => {
 			console.log('Play failed, retrying...', error);
 			// Retry after a short delay
@@ -87,7 +86,6 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false,
 			// Força o play imediatamente quando autoStart é true
 			const forcePlay = () => {
 				if (ref.current) {
-					ref.current.muted = true;
 					ref.current.play().catch((error: unknown) => {
 						console.log('Force play failed, retrying...', error);
 						// Retry multiple times with increasing delays
