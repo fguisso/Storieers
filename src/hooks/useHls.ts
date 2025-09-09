@@ -59,14 +59,12 @@ export function useHls({ videoEl, hlsUrl, onEnded, onError }: UseHlsOptions) {
 					hls.on(Hls.Events.FRAG_LOADED, () => saveBw(hls!));
 					hls.attachMedia(videoEl);
 					hls.loadSource(hlsUrl);
-					await videoEl.play().catch(() => undefined);
 					return;
 				}
 
 				// Native HLS (Safari)
 				if (hlsUrl && videoEl.canPlayType('application/vnd.apple.mpegurl')) {
 					videoEl.src = hlsUrl;
-					await videoEl.play().catch(() => undefined);
 					return;
 				}
 
