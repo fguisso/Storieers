@@ -68,7 +68,7 @@ export function StoryControls({ onPrev, onNext, originalUrl }: {
 		>
 			<div className="tap-zone tap-left" onClick={onPrev} />
 			<div className="tap-zone tap-right" onClick={onNext} />
-			<a className="absolute bottom-3 left-3 z-40 text-white bg-black/50 px-3 py-1 rounded" href={originalUrl} target="_blank" rel="noreferrer">
+			<a className="absolute bottom-6 left-4 z-50 text-white bg-black/60 px-3 py-1 rounded" href={originalUrl} target="_blank" rel="noreferrer">
 				Ver no PeerTube
 			</a>
 		</div>

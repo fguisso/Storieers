@@ -85,9 +85,12 @@ export function useHls({ videoEl, hlsUrl, muted, onEnded, onError }: UseHlsOptio
 		};
 	}, [videoEl, hlsUrl, onEnded, onError]);
 
-	// Keep muted in sync without reinitializing
+	// Keep muted in sync without reinitializing; ensure playback continues on unmute
 	useEffect(() => {
 		if (!videoEl) return;
 		videoEl.muted = muted;
+		if (!muted) {
+			void videoEl.play().catch(() => undefined);
+		}
 	}, [videoEl, muted]);
 }
