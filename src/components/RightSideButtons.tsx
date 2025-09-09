@@ -2,16 +2,42 @@
 import type { MouseEvent, PointerEvent, TouchEvent } from 'react';
 
 export default function RightSideButtons({ muted, toggleMuted }: { muted: boolean; toggleMuted: () => void; }) {
+	const handleMuteClick = (e: MouseEvent<HTMLButtonElement>) => {
+		e.preventDefault();
+		e.stopPropagation();
+		toggleMuted();
+	};
+
+	const handlePointerDown = (e: PointerEvent<HTMLButtonElement>) => {
+		e.preventDefault();
+		e.stopPropagation();
+	};
+
+	const handlePointerUp = (e: PointerEvent<HTMLButtonElement>) => {
+		e.preventDefault();
+		e.stopPropagation();
+	};
+
+	const handleMouseDown = (e: MouseEvent<HTMLButtonElement>) => {
+		e.preventDefault();
+		e.stopPropagation();
+	};
+
+	const handleTouchStart = (e: TouchEvent<HTMLButtonElement>) => {
+		e.preventDefault();
+		e.stopPropagation();
+	};
+
 	return (
 		<div className="absolute bottom-20 right-3 z-50 flex flex-col items-center gap-3 pointer-events-auto" data-ui-control="true">
 			<button
 				aria-label={muted ? 'Ativar som' : 'Silenciar'}
 				data-ui-control="true"
-				onClick={(e: MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); toggleMuted(); }}
-				onPointerDown={(e: PointerEvent<HTMLButtonElement>) => e.stopPropagation()}
-				onPointerUp={(e: PointerEvent<HTMLButtonElement>) => e.stopPropagation()}
-				onMouseDown={(e: MouseEvent<HTMLButtonElement>) => e.stopPropagation()}
-				onTouchStart={(e: TouchEvent<HTMLButtonElement>) => e.stopPropagation()}
+				onClick={handleMuteClick}
+				onPointerDown={handlePointerDown}
+				onPointerUp={handlePointerUp}
+				onMouseDown={handleMouseDown}
+				onTouchStart={handleTouchStart}
 				className="bg-black/60 text-white rounded-full w-12 h-12 grid place-content-center shadow-md active:scale-95"
 			>
 				{muted ? (
