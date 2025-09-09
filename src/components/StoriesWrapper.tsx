@@ -2,18 +2,18 @@ import { useState } from 'react';
 import { StoriesProvider } from '../context/StoriesProvider';
 import HomePage from './HomePage';
 import StoryUI from './StoryUI';
+import { markUserGesture } from '../utils/gesturePlay';
 
 export default function StoriesWrapper() {
   const [showStories, setShowStories] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const handleAvatarClick = () => {
+    // Marcar gesto e abrir imediatamente para aproveitar a janela de autoplay
+    markUserGesture();
     setIsTransitioning(true);
-    // Delay maior para dar tempo do vídeo carregar
-    setTimeout(() => {
-      setShowStories(true);
-      setIsTransitioning(false);
-    }, 500);
+    setShowStories(true);
+    setIsTransitioning(false);
   };
 
   const handleStoriesEnd = () => {

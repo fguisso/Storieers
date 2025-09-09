@@ -1,29 +1,36 @@
 import { useEffect, useRef, useState } from 'react';
 import type { VideoItem } from '../types/models';
 import { useHls } from '../hooks/useHls';
+import { isWithinGestureWindow } from '../utils/gesturePlay';
 
 export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false }: { video: VideoItem; muted: boolean; onEnded: () => void; onError: (e: unknown) => void; autoStart?: boolean; }) {
 	const ref = useRef<HTMLVideoElement | null>(null);
 	const [showInitialSpinner, setShowInitialSpinner] = useState(true);
 	const [isVideoReady, setIsVideoReady] = useState(false);
 
+	// HLS: NÃO dependemos de `muted` aqui
 	useHls({
 		videoEl: ref.current,
 		hlsUrl: video.hlsUrl,
-		muted,
 		onEnded,
 		onError: (e) => {
 			onError(e);
 		},
 	});
 
+	// Aplicar mute no elemento sem tocar no HLS/source
+	useEffect(() => {
+		if (ref.current) ref.current.muted = muted;
+	}, [muted]);
+
 	// Função para tentar tocar o vídeo
 	const attemptPlay = () => {
 		if (!ref.current) return;
 		
-		ref.current.play().catch((error: unknown) => {
+		ref.current.play().then(() => {
+			// ok
+		}).catch((error: unknown) => {
 			console.log('Play failed, retrying...', error);
-			// Retry after a short delay
 			setTimeout(() => {
 				ref.current?.play().catch(() => {
 					console.log('Play failed completely');
@@ -40,8 +47,10 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 		setIsVideoReady(false);
 		setShowInitialSpinner(true);
 		
-		// Try to play immediately
-		attemptPlay();
+		// Tentar tocar imediatamente se ainda estivermos na janela do gesto
+		if (isWithinGestureWindow()) {
+			attemptPlay();
+		}
 	}, [video.id]);
 
 	// useEffect para tentar play quando o vídeo está pronto
@@ -102,38 +111,12 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 				}
 			};
 
-			// Tenta tocar imediatamente
-			forcePlay();
+			// Só força se estivermos na janela do gesto OU já temos dados para tocar
+			if (isWithinGestureWindow() || ref.current.readyState >= 3) {
+				forcePlay();
+			}
 		}
 	}, [autoStart]);
-
-	// useEffect para monitorar quando o vídeo está pronto e forçar play
-	useEffect(() => {
-		const videoEl = ref.current;
-		if (!videoEl || !autoStart) return;
-
-		const handleVideoReady = () => {
-			if (videoEl.readyState >= 3) { // HAVE_FUTURE_DATA
-				videoEl.play().catch((error) => {
-					console.log('Video ready play failed:', error);
-				});
-			}
-		};
-
-		// Tenta tocar quando o vídeo está pronto
-		handleVideoReady();
-
-		// Adiciona listeners para tentar tocar quando o vídeo estiver pronto
-		videoEl.addEventListener('loadeddata', handleVideoReady);
-		videoEl.addEventListener('canplay', handleVideoReady);
-		videoEl.addEventListener('canplaythrough', handleVideoReady);
-
-		return () => {
-			videoEl.removeEventListener('loadeddata', handleVideoReady);
-			videoEl.removeEventListener('canplay', handleVideoReady);
-			videoEl.removeEventListener('canplaythrough', handleVideoReady);
-		};
-	}, [autoStart, video.id]);
 
 	return (
 		<div className="story-container relative h-screen w-screen overflow-hidden">
@@ -145,7 +128,6 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 				autoPlay 
 				preload="auto"
 				crossOrigin="anonymous"
-				/* remove poster to avoid misaligned thumb before layout */
 				onLoadedData={() => {
 					if (autoStart && ref.current) {
 						ref.current.play().catch(() => {

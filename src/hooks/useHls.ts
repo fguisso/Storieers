@@ -13,12 +13,11 @@ const saveBw = (hls: Hls) => {
 export interface UseHlsOptions {
 	videoEl: HTMLVideoElement | null;
 	hlsUrl?: string;
-	muted: boolean;
 	onEnded: () => void;
 	onError: (err: unknown) => void;
 }
 
-export function useHls({ videoEl, hlsUrl, muted, onEnded, onError }: UseHlsOptions) {
+export function useHls({ videoEl, hlsUrl, onEnded, onError }: UseHlsOptions) {
 	// Initialize/destroy HLS only when element or source changes
 	useEffect(() => {
 		if (!videoEl) return;
@@ -27,7 +26,6 @@ export function useHls({ videoEl, hlsUrl, muted, onEnded, onError }: UseHlsOptio
 
 		const setup = async () => {
 			try {
-				videoEl.muted = muted;
 				videoEl.setAttribute('playsinline', 'true');
 				videoEl.autoplay = true;
 				videoEl.controls = false;
@@ -84,13 +82,4 @@ export function useHls({ videoEl, hlsUrl, muted, onEnded, onError }: UseHlsOptio
 			try { hls?.destroy(); } catch { /* ignore destroy errors */ }
 		};
 	}, [videoEl, hlsUrl, onEnded, onError]);
-
-	// Keep muted in sync without reinitializing; ensure playback continues on unmute
-	useEffect(() => {
-		if (!videoEl) return;
-		videoEl.muted = muted;
-		if (!muted) {
-			void videoEl.play().catch(() => undefined);
-		}
-	}, [videoEl, muted]);
 }
