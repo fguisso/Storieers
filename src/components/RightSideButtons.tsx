@@ -1,15 +1,17 @@
 
+import type { MouseEvent, PointerEvent, TouchEvent } from 'react';
+
 export default function RightSideButtons({ muted, toggleMuted }: { muted: boolean; toggleMuted: () => void; }) {
 	return (
 		<div className="absolute bottom-20 right-3 z-50 flex flex-col items-center gap-3 pointer-events-auto" data-ui-control="true">
 			<button
 				aria-label={muted ? 'Ativar som' : 'Silenciar'}
 				data-ui-control="true"
-				onClick={(e) => { e.stopPropagation(); toggleMuted(); }}
-				onPointerDown={(e) => e.stopPropagation()}
-				onPointerUp={(e) => e.stopPropagation()}
-				onMouseDown={(e) => e.stopPropagation()}
-				onTouchStart={(e) => e.stopPropagation()}
+				onClick={(e: MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); toggleMuted(); }}
+				onPointerDown={(e: PointerEvent<HTMLButtonElement>) => e.stopPropagation()}
+				onPointerUp={(e: PointerEvent<HTMLButtonElement>) => e.stopPropagation()}
+				onMouseDown={(e: MouseEvent<HTMLButtonElement>) => e.stopPropagation()}
+				onTouchStart={(e: TouchEvent<HTMLButtonElement>) => e.stopPropagation()}
 				className="bg-black/60 text-white rounded-full w-12 h-12 grid place-content-center shadow-md active:scale-95"
 			>
 				{muted ? (

@@ -162,10 +162,6 @@ function extractHlsUrl(video: z.infer<typeof VideoDetailsSchema>): string | unde
 	return master?.playlistUrl;
 }
 
-// MP4 fallback removed per requirements
-function extractMp4Url(_video: z.infer<typeof VideoDetailsSchema>): string | undefined {
-	return undefined;
-}
 
 export async function fetchChannelVideos(channelId: number | undefined, accountName?: string): Promise<VideoItem[]> {
 	let items: ChannelListItem[] | undefined;
