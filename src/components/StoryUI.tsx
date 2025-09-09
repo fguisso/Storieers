@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useStories } from '../context/StoriesProvider';
 import ProgressBar from './ProgressBar';
 import StoryPlayer from './StoryPlayer';
@@ -63,7 +63,6 @@ export default function StoryUI({ onStoriesEnd, autoStart = false }: StoryUIProp
 				onEnded={handleVideoEnd}
 				onError={handleVideoEnd}
 				autoStart={autoStart}
-				toggleMuted={toggleMuted}
 			/>
 
 			<div className="overlay-top" />

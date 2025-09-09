@@ -1,4 +1,5 @@
 
+import type { SyntheticEvent } from 'react';
 import { getGravatarUrl } from '../utils/gravatar';
 
 interface HomePageProps {
@@ -22,7 +23,7 @@ export default function HomePage({ onAvatarClick }: HomePageProps) {
               src={gravatarUrl} 
               alt="Avatar do usuário" 
               className="w-28 h-28 rounded-full object-cover"
-              onError={(e) => {
+              onError={(e: SyntheticEvent<HTMLImageElement, Event>) => {
                 // Fallback para emoji se a imagem do Gravatar falhar
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';

@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { VideoItem } from '../types/models';
 import { useHls } from '../hooks/useHls';
 
-export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false, toggleMuted }: { video: VideoItem; muted: boolean; onEnded: () => void; onError: (e: unknown) => void; autoStart?: boolean; toggleMuted: () => void; }) {
+export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false }: { video: VideoItem; muted: boolean; onEnded: () => void; onError: (e: unknown) => void; autoStart?: boolean; }) {
 	const ref = useRef<HTMLVideoElement | null>(null);
 	const [showInitialSpinner, setShowInitialSpinner] = useState(true);
 	const [isVideoReady, setIsVideoReady] = useState(false);
