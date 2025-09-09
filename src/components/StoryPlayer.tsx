@@ -138,16 +138,16 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false,
 	}, [autoStart, video.id]);
 
 	return (
-		<div className="story-container">
+		<div className="story-container relative h-screen w-screen overflow-hidden">
 			<video 
 				ref={ref} 
-				className="video-el story-video" 
+				className="video-el" 
 				playsInline 
 				muted={muted} 
 				autoPlay 
 				preload="auto"
 				crossOrigin="anonymous"
-				poster={video.thumbnailUrl}
+				/* remove poster to avoid misaligned thumb before layout */
 				onLoadedData={() => {
 					if (autoStart && ref.current) {
 						ref.current.play().catch(() => {
