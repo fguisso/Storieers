@@ -15,6 +15,7 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 		if (!videoEl) return;
 
 		let hls: Hls | null = null;
+		let domPlayListener: ((this: HTMLVideoElement, ev: Event) => any) | null = null;
 
 		const setup = async () => {
 			try {
@@ -31,7 +32,9 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 						maxBufferSize: 60 * 1000 * 1000,
 						maxMaxBufferLength: 30,
 					});
-					hls.on(Hls.Events.ERROR, (_, data) => {
+
+					// Handle fatal errors with MP4 fallback if available
+					hls.on(Hls.Events.ERROR, (_event: unknown, data: { fatal?: boolean; type?: string }) => {
 						if (data?.fatal) {
 							try { hls?.destroy(); } catch { /* ignore destroy errors */ }
 							hls = null;
@@ -44,9 +47,30 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 							}
 						}
 					});
-					hls.loadSource(hlsUrl);
+
+					// Attach media first, then load source
 					hls.attachMedia(videoEl);
-					await videoEl.play().catch(() => undefined);
+					hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+						try {
+							hls?.loadSource(hlsUrl);
+						} catch {
+							// noop
+						}
+					});
+
+					// Start playback as soon as the manifest is parsed
+					hls.on(Hls.Events.MANIFEST_PARSED, () => {
+						videoEl.play().catch(() => undefined);
+					});
+
+					// Also try to play when the browser reports it can play
+					const tryPlay = () => {
+						videoEl.play().catch(() => undefined);
+					};
+					domPlayListener = tryPlay;
+					videoEl.addEventListener('canplay', tryPlay);
+					videoEl.addEventListener('loadeddata', tryPlay);
+
 					return;
 				}
 
@@ -73,6 +97,12 @@ export function useHls({ videoEl, hlsUrl, mp4Url, muted, onEnded, onError }: Use
 
 		return () => {
 			try { hls?.destroy(); } catch { /* ignore destroy errors */ }
+			if (domPlayListener && videoEl) {
+				try {
+					videoEl.removeEventListener('canplay', domPlayListener);
+					videoEl.removeEventListener('loadeddata', domPlayListener);
+				} catch { /* ignore cleanup errors */ }
+			}
 		};
 	}, [videoEl, hlsUrl, mp4Url, muted, onEnded, onError]);
 }
