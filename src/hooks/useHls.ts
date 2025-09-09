@@ -19,6 +19,7 @@ export interface UseHlsOptions {
 }
 
 export function useHls({ videoEl, hlsUrl, muted, onEnded, onError }: UseHlsOptions) {
+	// Initialize/destroy HLS only when element or source changes
 	useEffect(() => {
 		if (!videoEl) return;
 
@@ -82,5 +83,11 @@ export function useHls({ videoEl, hlsUrl, muted, onEnded, onError }: UseHlsOptio
 		return () => {
 			try { hls?.destroy(); } catch { /* ignore destroy errors */ }
 		};
-	}, [videoEl, hlsUrl, muted, onEnded, onError]);
+	}, [videoEl, hlsUrl, onEnded, onError]);
+
+	// Keep muted in sync without reinitializing
+	useEffect(() => {
+		if (!videoEl) return;
+		videoEl.muted = muted;
+	}, [videoEl, muted]);
 }

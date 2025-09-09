@@ -40,29 +40,7 @@ export default function StoryUI({ onStoriesEnd, autoStart = false }: StoryUIProp
 				preloadedRef.current = true;
 				const nextItem = stories[currentIndex + 1];
 				const url = nextItem.hlsUrl;
-				if (url) {
-					// preconnect/dns-prefetch para a origem do próximo vídeo
-					try {
-						const u = new URL(url);
-						const origin = `${u.protocol}//${u.host}`;
-						const mk = (rel: string, href: string, crossorigin = false) => {
-							const l = document.createElement('link');
-							l.rel = rel as any;
-							l.href = href;
-							if (crossorigin) (l as any).crossOrigin = 'anonymous';
-							document.head.appendChild(l);
-						};
-						mk('dns-prefetch', origin);
-						mk('preconnect', origin, true);
-						const pre = document.createElement('link');
-						pre.rel = 'prefetch';
-						pre.href = url;
-						(pre as any).as = 'fetch';
-						document.head.appendChild(pre);
-					} catch {}
-					// aquece o manifest no cache
-					fetch(url, { mode: 'cors' }).catch(() => {});
-				}
+				if (url) fetch(url, { mode: 'cors' }).catch(() => {});
 			}
 		};
 		el.addEventListener('timeupdate', onTime);
