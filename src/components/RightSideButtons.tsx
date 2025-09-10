@@ -1,31 +1,10 @@
-
-import type { MouseEvent, PointerEvent, TouchEvent } from 'react';
+import type { MouseEvent } from 'react';
 
 export default function RightSideButtons({ muted, toggleMuted }: { muted: boolean; toggleMuted: () => void; }) {
-	const handleMuteClick = (e: MouseEvent<HTMLButtonElement>) => {
+	const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
 		e.preventDefault();
 		e.stopPropagation();
 		toggleMuted();
-	};
-
-	const handlePointerDown = (e: PointerEvent<HTMLButtonElement>) => {
-		e.preventDefault();
-		e.stopPropagation();
-	};
-
-	const handlePointerUp = (e: PointerEvent<HTMLButtonElement>) => {
-		e.preventDefault();
-		e.stopPropagation();
-	};
-
-	const handleMouseDown = (e: MouseEvent<HTMLButtonElement>) => {
-		e.preventDefault();
-		e.stopPropagation();
-	};
-
-	const handleTouchStart = (e: TouchEvent<HTMLButtonElement>) => {
-		e.preventDefault();
-		e.stopPropagation();
 	};
 
 	return (
@@ -33,11 +12,7 @@ export default function RightSideButtons({ muted, toggleMuted }: { muted: boolea
 			<button
 				aria-label={muted ? 'Ativar som' : 'Silenciar'}
 				data-ui-control="true"
-				onClick={handleMuteClick}
-				onPointerDown={handlePointerDown}
-				onPointerUp={handlePointerUp}
-				onMouseDown={handleMouseDown}
-				onTouchStart={handleTouchStart}
+				onClick={handleClick}
 				className="bg-black/60 text-white rounded-full w-12 h-12 grid place-content-center shadow-md active:scale-95"
 			>
 				{muted ? (
@@ -59,4 +34,3 @@ export default function RightSideButtons({ muted, toggleMuted }: { muted: boolea
 		</div>
 	);
 }
-

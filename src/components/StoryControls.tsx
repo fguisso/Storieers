@@ -37,17 +37,9 @@ export function StoryControls({ onPrev, onNext, originalUrl }: {
 	};
 
 	const startHold = (e: React.MouseEvent | React.TouchEvent | React.PointerEvent) => {
-		// Ignore touches/clicks from UI controls
-		const native = (e as any).nativeEvent as Event & { composedPath?: () => EventTarget[] };
-		const path = native?.composedPath?.();
-		
 		// Check if the click is on a UI control element
-		if (path && path.some((n) => {
-			const element = n as HTMLElement;
-			return element?.dataset?.uiControl === 'true' || 
-				   element?.closest('[data-ui-control="true"]') !== null;
-		})) {
-			// Don't pause video if clicking on UI controls
+		const target = e.target as HTMLElement;
+		if (target?.closest('[data-ui-control="true"]')) {
 			return;
 		}
 

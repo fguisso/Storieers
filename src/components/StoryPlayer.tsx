@@ -7,7 +7,6 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 	const ref = useRef<HTMLVideoElement | null>(null);
 	const [showInitialSpinner, setShowInitialSpinner] = useState(true);
 	const [isVideoReady, setIsVideoReady] = useState(false);
-	const [hasAttemptedPlay, setHasAttemptedPlay] = useState(false);
 
 	// HLS: NÃO dependemos de `muted` aqui
 	useHls({
@@ -28,14 +27,12 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 
 	// Função para tentar tocar o vídeo
 	const attemptPlay = () => {
-		if (!ref.current || hasAttemptedPlay) return;
-		
-		setHasAttemptedPlay(true);
+		if (!ref.current) return;
 		
 		ref.current.play().then(() => {
 			setShowInitialSpinner(false);
 		}).catch(() => {
-			setHasAttemptedPlay(false);
+			// Play failed, try again after a short delay
 			setTimeout(() => {
 				if (ref.current) {
 					ref.current.play().catch(() => {
@@ -52,7 +49,6 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 		
 		setIsVideoReady(false);
 		setShowInitialSpinner(true);
-		setHasAttemptedPlay(false);
 		
 		// Tentar tocar imediatamente se ainda estivermos na janela do gesto
 		if (isWithinGestureWindow()) {
@@ -64,10 +60,10 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 
 	// Tentar play quando o vídeo está pronto
 	useEffect(() => {
-		if (isVideoReady && ref.current && !hasAttemptedPlay) {
+		if (isVideoReady && ref.current) {
 			attemptPlay();
 		}
-	}, [isVideoReady, hasAttemptedPlay]);
+	}, [isVideoReady]);
 
 	// Event listeners para o vídeo
 	useEffect(() => {
@@ -81,13 +77,13 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 
 		const handleCanPlay = () => {
 			setIsVideoReady(true);
-			if (autoStart && !hasAttemptedPlay) {
+			if (autoStart) {
 				attemptPlay();
 			}
 		};
 
 		const handleLoadedData = () => {
-			if (autoStart && !hasAttemptedPlay) {
+			if (autoStart) {
 				attemptPlay();
 			}
 		};
@@ -105,18 +101,18 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 			videoEl.removeEventListener('canplay', handleCanPlay);
 			videoEl.removeEventListener('playing', handlePlaying);
 		};
-	}, [video.id, autoStart, hasAttemptedPlay]);
+	}, [video.id, autoStart]);
 
 	// Forçar play quando autoStart está ativo
 	useEffect(() => {
-		if (autoStart && ref.current && !hasAttemptedPlay) {
+		if (autoStart && ref.current) {
 			if (isWithinGestureWindow()) {
 				attemptPlay();
 			} else {
 				attemptPlay();
 			}
 		}
-	}, [autoStart, hasAttemptedPlay]);
+	}, [autoStart]);
 
 	return (
 		<div className="story-container relative h-screen w-screen overflow-hidden">
