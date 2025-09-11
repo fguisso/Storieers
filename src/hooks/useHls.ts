@@ -5,8 +5,8 @@ const getLastBw = () => {
   const v = localStorage.getItem('hls:lastBwKbps');
   return v ? Number(v) * 1000 : 500_000; // 500 Kbps seed
 };
-const saveBw = (hls: Hls) => {
-  const est = (hls as any)?.bandwidthEstimate;
+const saveBw = (hls: Hls & { bandwidthEstimate?: number }) => {
+  const est = hls.bandwidthEstimate;
   if (est) localStorage.setItem('hls:lastBwKbps', String(Math.round(est / 1000)));
 };
 
@@ -29,7 +29,7 @@ export function useHls({ videoEl, hlsUrl, onEnded, onError }: UseHlsOptions) {
 				videoEl.setAttribute('playsinline', 'true');
 				videoEl.autoplay = true;
 				videoEl.controls = false;
-				(videoEl as any).crossOrigin = 'anonymous';
+                                videoEl.crossOrigin = 'anonymous';
 
 				videoEl.onended = onEnded;
 				videoEl.onerror = () => onError(new Error('Video element error'));

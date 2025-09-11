@@ -6,20 +6,22 @@ import App from './App.tsx'
 // --- Preconnect & DNS Prefetch (uses VITE_INSTANCE) ---
 ;(function setupPreconnect() {
   try {
-    const inst = (import.meta as any).env?.VITE_INSTANCE as string | undefined
+    const inst = import.meta.env?.VITE_INSTANCE as string | undefined
     if (!inst) return
     const u = new URL(inst)
     const host = `${u.protocol}//${u.host}`
     const mk = (rel: string, href: string, crossorigin = false) => {
       const l = document.createElement('link')
-      l.rel = rel as any
+      l.rel = rel
       l.href = href
-      if (crossorigin) (l as any).crossOrigin = 'anonymous'
+      if (crossorigin) l.crossOrigin = 'anonymous'
       document.head.appendChild(l)
     }
     mk('dns-prefetch', host)
     mk('preconnect', host, true)
-  } catch {}
+  } catch {
+    /* empty */
+  }
 })()
 
 createRoot(document.getElementById('root')!).render(

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { VideoItem } from '../types/models';
 import { useHls } from '../hooks/useHls';
 import { isWithinGestureWindow } from '../utils/gesturePlay';
@@ -27,8 +27,8 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 	}, [muted]);
 
 	// Função para tentar tocar o vídeo
-	const attemptPlay = () => {
-		if (!ref.current || hasAttemptedPlay) return;
+          const attemptPlay = useCallback(() => {
+                  if (!ref.current || hasAttemptedPlay) return;
 		
 		setHasAttemptedPlay(true);
 		
@@ -44,79 +44,79 @@ export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false 
 				}
 			}, 100);
 		});
-	};
+          }, [hasAttemptedPlay]);
 
 	// Reset quando o vídeo muda
-	useEffect(() => {
-		if (!ref.current) return;
-		
-		setIsVideoReady(false);
-		setShowInitialSpinner(true);
-		setHasAttemptedPlay(false);
-		
-		// Tentar tocar imediatamente se ainda estivermos na janela do gesto
-		if (isWithinGestureWindow()) {
-			attemptPlay();
-		} else if (autoStart) {
-			attemptPlay();
-		}
-	}, [video.id, autoStart]);
+          useEffect(() => {
+                if (!ref.current) return;
+
+                setIsVideoReady(false);
+                setShowInitialSpinner(true);
+                setHasAttemptedPlay(false);
+
+                // Tentar tocar imediatamente se ainda estivermos na janela do gesto
+                if (isWithinGestureWindow()) {
+                        attemptPlay();
+                } else if (autoStart) {
+                        attemptPlay();
+                }
+          }, [video.id, autoStart, attemptPlay]);
 
 	// Tentar play quando o vídeo está pronto
-	useEffect(() => {
-		if (isVideoReady && ref.current && !hasAttemptedPlay) {
-			attemptPlay();
-		}
-	}, [isVideoReady, hasAttemptedPlay]);
+          useEffect(() => {
+                if (isVideoReady && ref.current && !hasAttemptedPlay) {
+                        attemptPlay();
+                }
+          }, [isVideoReady, hasAttemptedPlay, attemptPlay]);
 
 	// Event listeners para o vídeo
-	useEffect(() => {
-		const videoEl = ref.current;
-		if (!videoEl) return;
+          useEffect(() => {
+                const videoEl = ref.current;
+                if (!videoEl) return;
 
-		const hideInitial = () => {
-			setShowInitialSpinner(false);
-			setIsVideoReady(true);
-		};
+                const hideInitial = () => {
+                        setShowInitialSpinner(false);
+                        setIsVideoReady(true);
+                };
 
-		const handleCanPlay = () => {
-			setIsVideoReady(true);
-			if (autoStart && !hasAttemptedPlay) {
-				attemptPlay();
-			}
-		};
+                const handleCanPlay = () => {
+                        setIsVideoReady(true);
+                        if (autoStart && !hasAttemptedPlay) {
+                                attemptPlay();
+                        }
+                };
 
-		const handleLoadedData = () => {
-			if (autoStart && !hasAttemptedPlay) {
-				attemptPlay();
-			}
-		};
+                const handleLoadedData = () => {
+                        if (autoStart && !hasAttemptedPlay) {
+                                attemptPlay();
+                        }
+                };
 
-		const handlePlaying = () => {
-			hideInitial();
-		};
+                const handlePlaying = () => {
+                        hideInitial();
+                };
 
-		videoEl.addEventListener('loadeddata', handleLoadedData);
-		videoEl.addEventListener('canplay', handleCanPlay);
-		videoEl.addEventListener('playing', handlePlaying);
+                videoEl.addEventListener('loadeddata', handleLoadedData);
+                videoEl.addEventListener('canplay', handleCanPlay);
+                videoEl.addEventListener('playing', handlePlaying);
 
-		return () => {
-			videoEl.removeEventListener('loadeddata', handleLoadedData);
-			videoEl.removeEventListener('canplay', handleCanPlay);
-			videoEl.removeEventListener('playing', handlePlaying);
-		};
-	}, [video.id, autoStart, hasAttemptedPlay]);
+                return () => {
+                        videoEl.removeEventListener('loadeddata', handleLoadedData);
+                        videoEl.removeEventListener('canplay', handleCanPlay);
+                        videoEl.removeEventListener('playing', handlePlaying);
+                };
+          }, [video.id, autoStart, hasAttemptedPlay, attemptPlay]);
 
 	// Forçar play quando autoStart está ativo
-	useEffect(() => {
-		if (autoStart && ref.current && !hasAttemptedPlay) {
-			if (isWithinGestureWindow()) {
-				attemptPlay();
-			} else {
-				attemptPlay();
-			}
-		}
-	}, [autoStart, hasAttemptedPlay]);
+          useEffect(() => {
+                if (autoStart && ref.current && !hasAttemptedPlay) {
+                        if (isWithinGestureWindow()) {
+                                attemptPlay();
+                        } else {
+                                attemptPlay();
+                        }
+                }
+          }, [autoStart, hasAttemptedPlay, attemptPlay]);
 
 	return (
 		<div className="story-container relative h-screen w-screen overflow-hidden">
