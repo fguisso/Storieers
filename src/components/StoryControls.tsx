@@ -32,11 +32,11 @@ export function StoryControls({ onPrev, onNext, originalUrl }: {
 		if (el && el.paused) void el.play();
 	};
 
-	const startHold = (e: React.MouseEvent | React.TouchEvent | React.PointerEvent) => {
-		// Ignore touches/clicks from UI controls
-		const native = (e as any).nativeEvent as Event & { composedPath?: () => EventTarget[] };
-		const path = native?.composedPath?.();
-		if (path && path.some((n) => (n as HTMLElement)?.dataset?.uiControl === 'true')) return;
+        const startHold = (e: React.MouseEvent | React.TouchEvent | React.PointerEvent) => {
+                // Ignore touches/clicks from UI controls
+                const native = e.nativeEvent as Event & { composedPath?: () => EventTarget[] };
+                const path = native?.composedPath?.();
+                if (path && path.some((n) => (n as HTMLElement)?.dataset?.uiControl === 'true')) return;
 
 		pauseVideo();
 		clearHold();

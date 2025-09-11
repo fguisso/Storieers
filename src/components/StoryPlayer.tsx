@@ -1,139 +1,134 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { VideoItem } from '../types/models';
 import { useHls } from '../hooks/useHls';
 import { isWithinGestureWindow } from '../utils/gesturePlay';
 
-export function StoryPlayer({ video, muted, onEnded, onError, autoStart = false }: { video: VideoItem; muted: boolean; onEnded: () => void; onError: (e: unknown) => void; autoStart?: boolean; }) {
-	const ref = useRef<HTMLVideoElement | null>(null);
-	const [showInitialSpinner, setShowInitialSpinner] = useState(true);
-	const [isVideoReady, setIsVideoReady] = useState(false);
-	const [hasAttemptedPlay, setHasAttemptedPlay] = useState(false);
+export function StoryPlayer({
+  video,
+  muted,
+  onEnded,
+  onError,
+  autoStart = false,
+}: {
+  video: VideoItem;
+  muted: boolean;
+  onEnded: () => void;
+  onError: (e: unknown) => void;
+  autoStart?: boolean;
+}) {
+  const ref = useRef<HTMLVideoElement | null>(null);
+  const [showInitialSpinner, setShowInitialSpinner] = useState(true);
+  const [isVideoReady, setIsVideoReady] = useState(false);
 
-	// HLS: NÃO dependemos de `muted` aqui
-	useHls({
-		videoEl: ref.current,
-		hlsUrl: video.hlsUrl,
-		onEnded,
-		onError: (e) => {
-			onError(e);
-		},
-	});
+  // HLS: NÃO dependemos de `muted` aqui
+  useHls({
+    videoEl: ref.current,
+    hlsUrl: video.hlsUrl,
+    onEnded,
+    onError: (e) => {
+      onError(e);
+    },
+  });
 
-	// Aplicar mute no elemento sem tocar no HLS/source
-	useEffect(() => {
-		if (ref.current) {
-			ref.current.muted = muted;
-		}
-	}, [muted]);
+  // Aplicar mute no elemento sem tocar no HLS/source
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.muted = muted;
+    }
+  }, [muted]);
 
-	// Função para tentar tocar o vídeo
-	const attemptPlay = () => {
-		if (!ref.current || hasAttemptedPlay) return;
-		
-		setHasAttemptedPlay(true);
-		
-		ref.current.play().then(() => {
-			setShowInitialSpinner(false);
-		}).catch(() => {
-			setHasAttemptedPlay(false);
-			setTimeout(() => {
-				if (ref.current) {
-					ref.current.play().catch(() => {
-						// Play failed completely
-					});
-				}
-			}, 100);
-		});
-	};
+  // Função para tentar tocar o vídeo
+  const attemptPlay = useCallback(() => {
+    if (!ref.current) return;
+    ref.current.play().catch((error: unknown) => {
+      console.log('Play failed, retrying...', error);
+      setTimeout(() => {
+        ref.current?.play().catch(() => {
+          console.log('Play failed completely');
+        });
+      }, 100);
+    });
+  }, []);
 
-	// Reset quando o vídeo muda
-	useEffect(() => {
-		if (!ref.current) return;
-		
-		setIsVideoReady(false);
-		setShowInitialSpinner(true);
-		setHasAttemptedPlay(false);
-		
-		// Tentar tocar imediatamente se ainda estivermos na janela do gesto
-		if (isWithinGestureWindow()) {
-			attemptPlay();
-		} else if (autoStart) {
-			attemptPlay();
-		}
-	}, [video.id, autoStart]);
+  // Reset quando o vídeo muda
+  useEffect(() => {
+    if (!ref.current) return;
 
-	// Tentar play quando o vídeo está pronto
-	useEffect(() => {
-		if (isVideoReady && ref.current && !hasAttemptedPlay) {
-			attemptPlay();
-		}
-	}, [isVideoReady, hasAttemptedPlay]);
+    setIsVideoReady(false);
+    setShowInitialSpinner(true);
 
-	// Event listeners para o vídeo
-	useEffect(() => {
-		const videoEl = ref.current;
-		if (!videoEl) return;
+    // Tentar tocar imediatamente se ainda estivermos na janela do gesto
+    if (isWithinGestureWindow() || autoStart) {
+      attemptPlay();
+    }
+  }, [video.id, autoStart, attemptPlay]);
 
-		const hideInitial = () => {
-			setShowInitialSpinner(false);
-			setIsVideoReady(true);
-		};
+  // Tentar play quando o vídeo está pronto
+  useEffect(() => {
+    if (isVideoReady) {
+      attemptPlay();
+    }
+  }, [isVideoReady, attemptPlay]);
 
-		const handleCanPlay = () => {
-			setIsVideoReady(true);
-			if (autoStart && !hasAttemptedPlay) {
-				attemptPlay();
-			}
-		};
+  // Event listeners para o vídeo
+  useEffect(() => {
+    const videoEl = ref.current;
+    if (!videoEl) return;
 
-		const handleLoadedData = () => {
-			if (autoStart && !hasAttemptedPlay) {
-				attemptPlay();
-			}
-		};
+    const hideInitial = () => {
+      setShowInitialSpinner(false);
+      setIsVideoReady(true);
+    };
 
-		const handlePlaying = () => {
-			hideInitial();
-		};
+    const handleCanPlay = () => {
+      setIsVideoReady(true);
+      if (autoStart) attemptPlay();
+    };
 
-		videoEl.addEventListener('loadeddata', handleLoadedData);
-		videoEl.addEventListener('canplay', handleCanPlay);
-		videoEl.addEventListener('playing', handlePlaying);
+    const handleLoadedData = () => {
+      if (autoStart) attemptPlay();
+    };
 
-		return () => {
-			videoEl.removeEventListener('loadeddata', handleLoadedData);
-			videoEl.removeEventListener('canplay', handleCanPlay);
-			videoEl.removeEventListener('playing', handlePlaying);
-		};
-	}, [video.id, autoStart, hasAttemptedPlay]);
+    videoEl.addEventListener('loadeddata', handleLoadedData);
+    videoEl.addEventListener('canplay', handleCanPlay);
+    videoEl.addEventListener('playing', hideInitial);
 
-	// Forçar play quando autoStart está ativo
-	useEffect(() => {
-		if (autoStart && ref.current && !hasAttemptedPlay) {
-			if (isWithinGestureWindow()) {
-				attemptPlay();
-			} else {
-				attemptPlay();
-			}
-		}
-	}, [autoStart, hasAttemptedPlay]);
+    return () => {
+      videoEl.removeEventListener('loadeddata', handleLoadedData);
+      videoEl.removeEventListener('canplay', handleCanPlay);
+      videoEl.removeEventListener('playing', hideInitial);
+    };
+  }, [video.id, autoStart, attemptPlay]);
 
-	return (
-		<div className="story-container relative h-screen w-screen overflow-hidden">
-			<video 
-				ref={ref} 
-				className="video-el" 
-				playsInline 
-				autoPlay 
-				preload="auto"
-				crossOrigin="anonymous"
-			/>
-			{showInitialSpinner && (
-				<div className="absolute inset-0 z-40 grid place-content-center pointer-events-none">
-					<div className="loading-spinner" />
-				</div>
-			)}
-		</div>
-	);
+  // Forçar play quando autoStart está ativo
+  useEffect(() => {
+    if (autoStart && ref.current) {
+      if (isWithinGestureWindow() || ref.current.readyState >= 3) {
+        attemptPlay();
+      }
+    }
+  }, [autoStart, attemptPlay]);
+
+  return (
+    <div className="story-container relative h-screen w-screen overflow-hidden">
+      <video
+        ref={ref}
+        className="video-el"
+        playsInline
+        // o muted “visual” no atributo não força re-mount; controlado via effect
+        muted={muted}
+        autoPlay
+        preload="auto"
+        crossOrigin="anonymous"
+      />
+      {showInitialSpinner && (
+        <div className="absolute inset-0 z-40 grid place-content-center pointer-events-none">
+          <div className="loading-spinner" />
+        </div>
+      )}
+    </div>
+  );
 }
+
 export default StoryPlayer;
+
