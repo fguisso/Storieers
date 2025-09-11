@@ -34,19 +34,24 @@ export function useHls({ videoEl, hlsUrl, onEnded, onError }: UseHlsOptions) {
 				videoEl.onended = onEnded;
 				videoEl.onerror = () => onError(new Error('Video element error'));
 
-				if (hlsUrl && Hls.isSupported()) {
-					hls = new Hls({
-						capLevelToPlayerSize: true,
-						startLevel: -1,
-						abrEwmaDefaultEstimate: getLastBw(),
-						maxBufferLength: 12,
-						maxBufferSize: 20 * 1000 * 1000,
-						startFragPrefetch: true,
-						lowLatencyMode: false,
-						xhrSetup: (xhr: XMLHttpRequest) => {
-							xhr.withCredentials = false;
-						},
-					});
+                                if (hlsUrl && Hls.isSupported()) {
+                                        hls = new Hls({
+                                                // Prefer quick startup with lowest rendition
+                                                startLevel: 0,
+                                                capLevelToPlayerSize: true,
+                                                abrEwmaDefaultEstimate: getLastBw(),
+                                                // Skip bandwidth test to avoid delaying first frame
+                                                testBandwidth: false,
+                                                // Conservative buffer sizes for faster play
+                                                maxBufferLength: 30,
+                                                backBufferLength: 90,
+                                                maxBufferSize: 20 * 1000 * 1000,
+                                                startFragPrefetch: true,
+                                                lowLatencyMode: false,
+                                                xhrSetup: (xhr: XMLHttpRequest) => {
+                                                        xhr.withCredentials = false;
+                                                },
+                                        });
 					hls.on(Hls.Events.ERROR, (_: unknown, data: { fatal?: boolean; type?: string }) => {
 						if (data?.fatal) {
 							try { hls?.destroy(); } catch { /* ignore destroy errors */ }
